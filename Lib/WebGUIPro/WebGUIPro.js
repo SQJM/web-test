@@ -34,6 +34,7 @@ const WebGUIPro = (function () {
         uniquenessElement,
         createElement,
         WDirection,
+        WSortord,
         WVarType,
         WWindowOperation,
         WPlace
@@ -129,8 +130,8 @@ const WebGUIPro = (function () {
         if (map.has("callbacks")) {
             const m = _ConfigValueToMap(map.get("callbacks"));
             forOf(m, (value, key, i) => {
-                const fn = new Function(value + "()");
-                This.ui.Class.setCallback(key, fn);
+                if (Judge.isEmptyString(value)) throw UI_Error.ParameterMismatch(`key:${key} value:${value || "null"} index:${i}`);
+                This.ui.Class.setCallback(key, window[value]);
             });
         }
     }
@@ -490,18 +491,18 @@ const WebGUIPro = (function () {
         }
 
         // 设置反转排序项
-        setReverse(bool = true, direction = WDirection.Column) {
-            if (!Judge.isValueInObject(direction, WDirection)) throw UI_Error.ParameterMismatch(direction);
-            _SetClassList(this.ui, bool, `w-${direction}-reverse`);
+        setReverse(bool = true, sortord = WSortord.Column) {
+            if (!Judge.isValueInObject(sortord, WSortord)) throw UI_Error.ParameterMismatch(sortord);
+            _SetClassList(this.ui, bool, `w-${sortord}-reverse`);
         }
 
         // 设置排序方向
-        setSortDirection(direction = WDirection.Column) {
-            if (!Judge.isValueInObject(direction, WDirection)) throw UI_Error.ParameterMismatch(direction);
-            _SetClassList(this.ui, false, `w-${WDirection.Column}-direction`);
-            _SetClassList(this.ui, false, `w-${WDirection.Row}-direction`);
+        setSortDirection(sortord = WSortord.Column) {
+            if (!Judge.isValueInObject(sortord, WSortord)) throw UI_Error.ParameterMismatch(sortord);
+            _SetClassList(this.ui, false, `w-${WSortord.Column}-direction`);
+            _SetClassList(this.ui, false, `w-${WSortord.Row}-direction`);
 
-            _SetClassList(this.ui, true, `w-${direction}-direction`);
+            _SetClassList(this.ui, true, `w-${sortord}-direction`);
         }
 
         // 设置项拖拽
@@ -952,12 +953,12 @@ const WebGUIPro = (function () {
         }
 
         // 获取值
-        getValue(returnType = String) {
-            if (returnType === String) {
+        getValue(returnType = WVarType.string) {
+            if (returnType === WVarType.string) {
                 return this.ui.value;
-            } else if (returnType === Number) {
+            } else if (returnType === WVarType.number) {
                 return parseInt(this.ui.value);
-            } else if (returnType === "Float") {
+            } else if (returnType === WVarType.float) {
                 return parseFloat(this.ui.value);
             } else throw UI_Error.ParameterMismatch(returnType);
         }
@@ -1036,6 +1037,14 @@ const WebGUIPro = (function () {
             delete: () => { }
         };
 
+        // 初始化 ui 配置
+        #initUIConfig() {
+            const map = _ConfigToMap(this.ui.attr("w-fieldset-config"));
+            _InitUIConfigCallbackEvent(map, this);
+            if (Judge.isMap(map)) {
+            }
+        }
+
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
             if (this.#Callbacks.hasOwnProperty(type)) {
@@ -1064,6 +1073,8 @@ const WebGUIPro = (function () {
 
         // 初始化
         #init() {
+            this.#initUIConfig();
+
             const first = this.ui.firstElementChild;
             this.ui.appendChild(this.#LegendElement);
             if (first !== this.#LegendElement) {
@@ -1103,6 +1114,14 @@ const WebGUIPro = (function () {
             selectView: () => { },
             swapView: () => { }
         };
+
+        // 初始化 ui 配置
+        #initUIConfig() {
+            const map = _ConfigToMap(this.ui.attr("w-stacked-config"));
+            _InitUIConfigCallbackEvent(map, this);
+            if (Judge.isMap(map)) {
+            }
+        }
 
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
@@ -1217,6 +1236,8 @@ const WebGUIPro = (function () {
 
         // 初始化
         #init() {
+            this.#initUIConfig();
+
             this.sortView();
         }
 
@@ -1247,6 +1268,14 @@ const WebGUIPro = (function () {
             selectTab: () => { },
             swapTab: () => { }
         };
+
+        // 初始化 ui 配置
+        #initUIConfig() {
+            const map = _ConfigToMap(this.ui.attr("w-tab-config"));
+            _InitUIConfigCallbackEvent(map, this);
+            if (Judge.isMap(map)) {
+            }
+        }
 
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
@@ -1372,7 +1401,7 @@ const WebGUIPro = (function () {
             this.#Callbacks.selectTab(indexOrView);
         }
 
-        // 设置 tab 标题项配置
+        // 覆盖 tab 标题项配置
         coverTabConfig(indexOrView = 0 || HTMLElement, config = []) {
             if (!Judge.isArray(config) && config !== null) throw UI_Error.ParameterMismatch(config);
             const tab = WView.ReturnUiInView(indexOrView, this);
@@ -1422,6 +1451,8 @@ const WebGUIPro = (function () {
             const defaultSelect = this.#ContentElement.$(">.select")[0];
             if (defaultSelect) this.selectTab(defaultSelect); else this.selectTab(0);
 
+            this.#initUIConfig();
+
             this.#BarElement.Class.setCallback("selectItem", (item, TargetElement) => {
                 if (item && !WItem.IsDisabled(item) && !TargetElement.hasClass("delete-btn")) {
                     this.selectTab(WItem.GetIndex(item));
@@ -1459,13 +1490,23 @@ const WebGUIPro = (function () {
     }
 
     class WBreadcrumbs {
+        #SplitSign = ">";
+
         #Callbacks = {
             delete: () => { },
             setItemPath: () => { },
             selectItem: () => { }
         };
 
-        #SplitSign = ">";
+        // 初始化 ui 配置
+        #initUIConfig() {
+            const map = _ConfigToMap(this.ui.attr("w-breadcrumbs-config"));
+            _InitUIConfigCallbackEvent(map, this);
+            if (Judge.isMap(map)) {
+                if (map.has("split")) this.setItemSplitSign(map.get("split"));
+                if (map.has("path")) this.setItemPath(map.get("path").split(","));
+            }
+        }
 
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
@@ -1546,19 +1587,14 @@ const WebGUIPro = (function () {
         #init() {
             this.sortItem();
 
+            this.#initUIConfig();
+
             this.ui.addEvent("click", (event) => {
                 const TargetElement = event.target;
                 const item = WItem.GetItem(TargetElement, this.ui);
                 if (!item || WItem.IsDisabled(item)) return;
                 this.#Callbacks.selectItem(item);
             });
-
-            const map = _ConfigToMap(this.ui.attr("w-breadcrumbs-config"));
-            this.setItemSplitSign(map.get("split"));
-            if (map.has("path")) {
-                const arr = map.get("path").split(",");
-                this.setItemPath(arr);
-            }
         }
 
         constructor(Element = null) {
@@ -1716,7 +1752,7 @@ const WebGUIPro = (function () {
         }
 
         // 设置内容
-        setContent(view = "" || HTMLElement) {
+        setContent(view = "" || HTMLElement, isRender = true) {
             if (WView.Is(view)) {
                 this.#View.content.innerRemove();
                 view.addClass("content");
@@ -1730,6 +1766,7 @@ const WebGUIPro = (function () {
             } else {
                 throw UI_Error.ParameterMismatch(view);
             }
+            isRender && anewRender(this.ui);
         }
 
         // 关闭
@@ -1911,7 +1948,7 @@ const WebGUIPro = (function () {
         }
 
         // 设置内容
-        setContent(view = "" || HTMLElement) {
+        setContent(view = "" || HTMLElement, isRender = true) {
             if (WView.Is(view)) {
                 this.ui.innerRemove();
                 view.addClass("content");
@@ -1926,6 +1963,7 @@ const WebGUIPro = (function () {
             } else {
                 throw UI_Error.ParameterMismatch(view);
             }
+            isRender && anewRender(this.ui);
         }
 
         // 关闭
@@ -1975,6 +2013,105 @@ const WebGUIPro = (function () {
         }
     }
 
+    class Drawer {
+        #Direction = WDirection.Bottom;
+
+        #Callbacks = {
+            delete: () => { }
+        };
+
+        // 设置回调
+        setCallback(type = "delete", fn = () => { }) {
+            if (this.#Callbacks.hasOwnProperty(type)) {
+                this.#Callbacks[type] = fn;
+            } else {
+                throw UI_Error.ParameterMismatch(type);
+            }
+        }
+
+        // 删除 ui
+        delete() {
+            _DeleteSonUi(this.ui);
+            this.#Callbacks.delete();
+            this.ui.remove();
+        }
+
+        // 显示
+        show() {
+            this.ui.w_Event = (event) => { }
+            this.close();
+            this.ui.show();
+        }
+
+        // 模态显示
+        showModal() {
+            this.ui.w_Event = (event) => {
+                if (event.wEventName !== "click") return;
+                this.delete();
+            }
+            this.close();
+            this.ui.showModal();
+        }
+
+        // 设置出现方向
+        setDirection(direction) {
+            if (!Judge.isValueInObject(direction, WDirection)) throw UI_Error.ParameterMismatch(direction);
+            this.#Direction = direction;
+            this.ui.attr("direction", direction);
+        }
+
+        // 设置内容
+        setContent(view = "" || HTMLElement, isRender = true) {
+            if (WView.Is(view)) {
+                this.ui.innerRemove();
+                view.addClass("content");
+                this.ui.appendChild(view);
+            } else if (Judge.isString(view)) {
+                this.ui.innerRemove();
+                this.ui.appendChild(createElement({
+                    attribute: [["w-view", ""]],
+                    classList: ["content"],
+                    text: view
+                }));
+            } else {
+                throw UI_Error.ParameterMismatch(view);
+            }
+            isRender && anewRender(this.ui);
+        }
+
+        // 关闭
+        close() {
+            this.ui.close();
+        }
+
+        // 初始化
+        #init({
+            parent = MainWindow,
+            content = "",
+            direction = WDirection.Bottom
+        } = {}) {
+
+            this.setContent(content);
+            this.setDirection(direction);
+
+            this.close();
+            parent.appendFragment(this.ui);
+        }
+
+        constructor(obj = {}) {
+            if (Judge.isObject(obj)) {
+                this.ui = createElement({
+                    tagName: "dialog",
+                    classList: ["w-drawer"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init(obj);
+        }
+    }
+
     /**
      * 根据指定的规则替换包含在元素内部的文本内容
      * 元素必须具有属性 `w-value-entry`
@@ -2013,7 +2150,7 @@ const WebGUIPro = (function () {
         ["text", WText],
         ["fieldset", WFieldset],
         ["stacked", WStacked],
-        ["tab", WTab],
+        ["tab", WTab]
     ];
 
     const ThemeProperty = {
@@ -2260,7 +2397,8 @@ const WebGUIPro = (function () {
         WTab,
 
         Dialog,
-        Activity
+        Activity,
+        Drawer
     };
 })();
 

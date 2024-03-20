@@ -12,7 +12,7 @@
 
 <body>
     <div id="MainWindow">
-        <div class="w-list" w-list-config="reverse">
+        <div class="w-list" w-list-config="">
             <div w-item>6t</div>
             <div w-item class="select">236t</div>
             <div w-item disabled>6rttttttttttttttttttttttttttttttt3tt</div>
@@ -43,7 +43,8 @@
             <div w-view tab-title="eftrtttrre" tab-config="delete:auto-hide icon:./Icon.png">-4</div>
             <div w-view tab-title="eftrtttrre" tab-config="disabled delete:auto-hide icon:./Icon.png">-4</div>
         </div>
-        <div class="w-breadcrumbs" w-breadcrumbs-config="split:> path:1dfggr,2efeg,3rgre,4fgher,5feghuj,6rjehgf,7hd"></div>
+        <div class="w-breadcrumbs" w-breadcrumbs-config="callbacks:selectItem=test2 split:> path:1dfggr,2efeg,3rgre,4fgher,5feghuj,6rjehgf,7hd"></div>
+        <button class="w-button" w-button-config="callbacks:click=test3 eventAgent">打开抽屉</button>
     </div>
 
     <script type="text/javascript" src="./Lib/WebUtilPro/WebUtilPro.js"></script>

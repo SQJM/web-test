@@ -49,6 +49,23 @@ function test1() {
     console.log("test1");
 }
 
+function test2(item) {
+    const rect = item.rect();
+    const a = new WebGUIPro.Activity({
+        content: item.textContent,
+        x: rect.x,
+        y: rect.y + rect.height
+    });
+    a.showModal();
+}
+
+function test3() {
+    const d = new WebGUIPro.Drawer({
+        content: "hello world!",
+    });
+    d.showModal();
+}
+
 window.onload = () => {
     render("./Lib/WebGUIPro");
     _INIT_PAGE_WebUtilPro_(() => {

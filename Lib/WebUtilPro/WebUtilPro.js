@@ -189,16 +189,20 @@ const WebUtilPro = (function () {
    */
   const WDirection = {
     /** 顶部 */
-    Top: 0,
+    Top: "top",
     /** 底部 */
-    Bottom: 1,
+    Bottom: "bottom",
     /** 左侧 */
-    Left: 2,
+    Left: "left",
     /** 右侧 */
-    Right: 3,
-    /** 列 */
+    Right: "right"
+  };
+
+  /**
+   * 排序方式
+   */
+  const WSortord = {
     Column: "column",
-    /** 行 */
     Row: "row"
   };
 
@@ -488,6 +492,15 @@ const WebUtilPro = (function () {
      */
     static isFalse(variable) {
       return variable === null || variable === void 0 || variable === false;
+    }
+
+    /**
+     * 判断变量是否为空字符串
+     * @param {any} variable 要判断的变量
+     * @returns {Boolean} 布尔值
+     */
+    static isEmptyString(variable) {
+      return Judge.isString(variable) && variable.trim() === '';
     }
 
     /**
@@ -1970,6 +1983,7 @@ const WebUtilPro = (function () {
     Code_Error,
 
     WDirection,
+    WSortord,
     WEvent,
     WEventLevel,
     WInputType,
@@ -2226,8 +2240,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-mousedown")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-mousedown"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-mousedown")](event);
         }
       }
       {
@@ -2258,8 +2271,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-click")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-click"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-click")](event);
         }
       }
     }
@@ -2275,8 +2287,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-input")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-input"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-input")](event);
         }
       }
     }
@@ -2293,8 +2304,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-mouseover")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-mouseover"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-mouseover")](event);
         }
       }
     }
@@ -2311,8 +2321,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-dblclick")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-dblclick"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-dblclick")](event);
         }
       }
     }
@@ -2328,8 +2337,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-copy")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-copy"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-copy")](event);
         }
       }
     }
@@ -2345,8 +2353,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-paste")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-paste"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-paste")](event);
         }
       }
     }
@@ -2362,8 +2369,7 @@ const WebUtilPro = (function () {
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-cut")) {
-          const callbackFunction = new Function(TargetElement.getAttribute("w-callback-cut"));
-          callbackFunction();
+          window[TargetElement.getAttribute("w-callback-cut")](event);
         }
       }
     }
