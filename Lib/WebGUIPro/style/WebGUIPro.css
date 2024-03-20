@@ -333,3 +333,43 @@ body {
         -webkit-transform: translateY(0);
     }
 }
+
+@keyframes WebGUIPro-appear-top-to-bottom {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes WebGUIPro-appear-bottom-to-top {
+    0% {
+        transform: translateY(100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes WebGUIPro-appear-left-to-right {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes WebGUIPro-appear-right-to-left {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}

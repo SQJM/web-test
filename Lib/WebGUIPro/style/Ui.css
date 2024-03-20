@@ -175,18 +175,60 @@
     position: fixed;
     outline: none;
     display: block;
+    max-width: 100dvw;
+    max-height: 100dvw;
+    height: 100dvh;
+    width: 100dvw;
 
     .content {
         width: 100%;
         height: 100%;
     }
+
+    &[direction="bottom"],
+    &[direction="top"] {
+        height: max-content;
+    }
+
+    &[direction="bottom"] {
+        max-height: 90dvh;
+        margin-top: auto;
+    }
+
+    &[direction="top"] {
+        max-height: 90dvh;
+        margin-bottom: auto;
+    }
+
+
+    &[direction="left"],
+    &[direction="right"] {
+        width: max-content;
+    }
+
+    &[direction="left"] {
+        max-width: 90dvw;
+        margin-right: auto;
+    }
+
+    &[direction="right"] {
+        max-width: 90dvw;
+        margin-left: auto;
+    }
 }
 
-.w-drawer[direction="bottom"] {
-    bottom: 0;
+/*=============================================================================================================================================================*/
+.w-floating[open] {
+    position: fixed;
+    top: 0;
     left: 0;
-    width: 100dvw;
-    max-height: 90dvh;
+    outline: none;
+    display: block;
+
+    .content {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 /*=============================================================================================================================================================*/
@@ -195,7 +237,10 @@ w-test {
     color: #aaf1ff10;
     cursor: context-menu;
     cursor: pointer;
+    animation: forwards reverse;
 }
+
+
 
 
 .w-display-none {

@@ -933,10 +933,10 @@ const WebUtilPro = (function () {
 
       if (!this.fn("onMove", x, y)) return;
       if (this.effectElementLimitWindow) {
-        const h = MainWindow.rect().height - 10;
-        const w = MainWindow.rect().width - 10;
-        if (y >= h) y = h - 30;
-        if (x >= w) x = w - 30;
+        const h = MainWindow.rect().height;
+        const w = MainWindow.rect().width;
+        if (y >= h) y = h - 50;
+        if (x >= w) x = w - 50;
         if (y <= 0) y = 0;
         if (x <= 0) x = 0;
       }
@@ -1486,7 +1486,7 @@ const WebUtilPro = (function () {
   /**
    * 元素动画
    * @param {HTMLElement} element - 目标元素
-   * @param {any} an - 动画
+   * @param {String} an - 动画
    * @param {Function} fn - 回调
    */
   function elementAnimation(element, an, fn = () => { }) {

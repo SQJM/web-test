@@ -21,6 +21,7 @@ const {
     _INIT_PAGE_WebUtilPro_,
     WPlace,
     WWindowOperation,
+    WDirection,
     getBrowserInfo
 } = WebUtilPro;
 
@@ -41,8 +42,19 @@ function init() {
             content: "hello world!"
         });
         a.showModal();
+        a.ui.w_Event = (event) => {
+            if (event.wEventName === "click") {
+                a.delete();
+            }
+        }
     }
 
+    { // test 3
+        const f = new WebGUIPro.Floating({
+            content: "hello world!"
+        });
+        f.show();
+    }
 }
 
 function test1() {
@@ -62,8 +74,9 @@ function test2(item) {
 function test3() {
     const d = new WebGUIPro.Drawer({
         content: "hello world!",
+        direction: WDirection.Left
     });
-    d.showModal();
+    d.show();
 }
 
 window.onload = () => {
