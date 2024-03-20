@@ -540,7 +540,7 @@ const WebUtilPro = (function () {
     /**
      * 将字符串转换为布尔值,
      * @param {string} str - 要转换的字符串,只能是 "true"`"false"`"1" 或 "0"
-     * @returns {boolean|undefined} 如果字符串为 "true" 或 "1",则返回 true;如果字符串为 "false" 或 "0",则返回 false;否则返回 undefined
+     * @returns {boolean|undefined} 如果字符串为 "true" 或 "1",则返回 true;如果字符串为 "false" 或 "0",则返回 false;否则返回 null
      */
     static strToBoolean(str) {
       if (str === "true" || str === "1") {
@@ -548,16 +548,30 @@ const WebUtilPro = (function () {
       } else if (str === "false" || str === "0") {
         return false;
       }
-      return undefined;
+      return null;
     }
 
     /**
      * 将类型转换为合适的位置
      * @param {string|number} value - 要转换的值,可以是数字或字符串
-     * @returns {string|undefined} 转换后的位置字符串,如果无法转换则返回 undefined
+     * @returns {string|undefined} 转换后的位置字符串,如果无法转换则返回 null
      */
-    static analysisPlace(value) {
+    static analysisPlace(value, toString = null) {
+      let toType;
       if (Judge.isNumber(value)) {
+        toType = WVarType.number;
+      } else if (Judge.isString(value)) {
+        toType = WVarType.string;
+      }
+
+      if (toString !== null)
+        if (toString) {
+          toType = WVarType.number;
+        } else {
+          toType = WVarType.string;
+        }
+
+      if (toType === WVarType.number) {
         switch (value) {
           case 0: { return "LT" }
           case 1: { return "LC" }
@@ -569,21 +583,21 @@ const WebUtilPro = (function () {
           case 7: { return "RC" }
           case 8: { return "RB" }
         }
-      } else if (Judge.isString(value)) {
+      } else if (toType === WVarType.string) {
         const value_ = value.toUpperCase();
         switch (value_) {
-          case "LT": { return _WebUtilPro_place.Left.Top }
-          case "LC": { return _WebUtilPro_place.Left.Center }
-          case "LB": { return _WebUtilPro_place.Left.Bottom }
-          case "CT": { return _WebUtilPro_place.Center.Top }
-          case "CC": { return _WebUtilPro_place.Center.Center }
-          case "CB": { return _WebUtilPro_place.Center.Bottom }
-          case "RT": { return _WebUtilPro_place.Right.Top }
-          case "RC": { return _WebUtilPro_place.Right.Center }
-          case "RB": { return _WebUtilPro_place.Right.Bottom }
+          case "LT": { return WPlace.Left.Top }
+          case "LC": { return WPlace.Left.Center }
+          case "LB": { return WPlace.Left.Bottom }
+          case "CT": { return WPlace.Center.Top }
+          case "CC": { return WPlace.Center.Center }
+          case "CB": { return WPlace.Center.Bottom }
+          case "RT": { return WPlace.Right.Top }
+          case "RC": { return WPlace.Right.Center }
+          case "RB": { return WPlace.Right.Bottom }
         }
       }
-      return void 0;
+      return null;
     }
 
     /**

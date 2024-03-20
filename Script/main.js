@@ -55,6 +55,12 @@ function init() {
         });
         f.show();
     }
+
+    { // test 4
+        new WebGUIPro.Message({
+            content: "hello world!"
+        });
+    }
 }
 
 function test1() {

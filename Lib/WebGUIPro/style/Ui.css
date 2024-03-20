@@ -232,6 +232,39 @@
 }
 
 /*=============================================================================================================================================================*/
+.w-message[open] {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    max-width: 100dvw;
+    max-height: 100dvw;
+    width: 100dvw;
+    height: 100dvw;
+
+    .message {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+    }
+
+    &[place="CT"] {
+        align-items: center;
+    }
+
+    &[place="CC"] {
+        align-items: center;
+    }
+
+    &[place="CB"] {
+        align-items: center;
+    }
+}
+
+/*=============================================================================================================================================================*/
 
 w-test {
     color: #aaf1ff10;

@@ -141,6 +141,7 @@ const WebGUIPro = (function () {
         }
     }
 
+
     class WindowFlags {
         static MinButtonHint = 0x000001;
         static RestoreButtonHint = 0x000010;
@@ -862,7 +863,7 @@ const WebGUIPro = (function () {
                     this.setSortDirection(map.get("sortDirection"));
                 }
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -933,7 +934,7 @@ const WebGUIPro = (function () {
                 if (map.has("eventAgent")) this.setEventAgent();
                 if (map.has("eventWait")) this.setEventWait();
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1017,7 +1018,7 @@ const WebGUIPro = (function () {
             }, (map) => {
                 if (map.has("readObly")) this.setReadObly();
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1109,7 +1110,7 @@ const WebGUIPro = (function () {
             }, (map) => {
                 if (map.has("readObly")) this.setReadObly();
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1158,7 +1159,7 @@ const WebGUIPro = (function () {
                 delete: () => { }
             }, (map) => {
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1287,7 +1288,7 @@ const WebGUIPro = (function () {
                 swapView: () => { }
             }, (map) => {
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1491,7 +1492,7 @@ const WebGUIPro = (function () {
                 swapTab: () => { }
             }, (map) => {
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1595,7 +1596,7 @@ const WebGUIPro = (function () {
                 if (map.has("split")) this.setItemSplitSign(map.get("split"));
                 if (map.has("path")) this.setItemPath(map.get("path").split(","));
             });
-            if (IsUiInit(this, Element)) return;
+            if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
             } else if (Judge.isNull(Element)) {
@@ -1742,6 +1743,7 @@ const WebGUIPro = (function () {
         // 初始化
         #init({
             parent = MainWindow,
+            eventID = generateUniqueId(),
             iconSrc = "",
             title = "",
             content = "",
@@ -1754,6 +1756,8 @@ const WebGUIPro = (function () {
             windowOperation = WWindowOperation.default,
             draggable = true
         } = {}) {
+            this.ui.attr("event-id", eventID);
+
             this.#View.titleText.textContent = title;
             this.#View.title.append(this.#View.titleIcon, this.#View.titleText, this.#View.titleBtn);
 
@@ -1777,7 +1781,7 @@ const WebGUIPro = (function () {
                 this.#DraggableClass = new AddDraggable({
                     element: this.#View.titleText,
                     effectElement: this.ui,
-                    fn: _ => true
+                    fn: this.Callbacks.draggable
                 });
             }
         }
@@ -1790,7 +1794,8 @@ const WebGUIPro = (function () {
                     if (eventName === "close") {
                         elementAnimation(this.ui, "WebGUIPro-opacity 0.1s reverse forwards", () => { this.delete() });
                     }
-                }
+                },
+                draggable: () => true
             });
             if (Judge.isObject(obj)) {
                 this.ui = createElement({
@@ -1810,6 +1815,7 @@ const WebGUIPro = (function () {
         // 初始化
         #init({
             parent = MainWindow,
+            eventID = generateUniqueId(),
             content = "",
             width = 300,
             height = 200,
@@ -1820,6 +1826,7 @@ const WebGUIPro = (function () {
             x = 0,
             y = 0
         } = {}) {
+            this.ui.attr("event-id", eventID);
 
             this.setContent(content);
             this.setHeight(height);
@@ -1868,9 +1875,12 @@ const WebGUIPro = (function () {
         // 初始化
         #init({
             parent = MainWindow,
+            eventID = generateUniqueId(),
             content = "",
             direction = WDirection.Bottom
         } = {}) {
+            this.ui.attr("event-id", eventID);
+
             this.setContent(content);
             this.setDirection(direction);
 
@@ -1937,6 +1947,7 @@ const WebGUIPro = (function () {
         // 初始化
         #init({
             parent = MainWindow,
+            eventID = generateUniqueId(),
             content = "",
             width = 100,
             height = 100,
@@ -1947,6 +1958,8 @@ const WebGUIPro = (function () {
             draggable = true,
             draggableElement = this.ui
         } = {}) {
+            this.ui.attr("event-id", eventID);
+
             this.setContent(content);
             this.setHeight(height);
             this.setWidth(width);
@@ -1961,7 +1974,7 @@ const WebGUIPro = (function () {
                 this.#DraggableClass = new AddDraggable({
                     element: draggableElement,
                     effectElement: this.ui,
-                    fn: _ => true
+                    fn: this.Callbacks.draggable
                 });
             }
         }
@@ -1969,12 +1982,91 @@ const WebGUIPro = (function () {
         constructor(obj = {}) {
             super({
                 delete: () => { },
-                close: () => { }
+                close: () => { },
+                draggable: () => true
             });
             if (Judge.isObject(obj)) {
                 this.ui = createElement({
                     tagName: "dialog",
                     classList: ["w-floating"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init(obj);
+        }
+    }
+
+    class Message extends UI2 {
+        #View = {
+            icon: createElement({
+                tagName: "img",
+                classList: ["icon"],
+                attribute: [["draggable", "false"]]
+            }),
+
+            title: createElement({
+                tagName: "h1",
+                classList: ["title"],
+            }),
+            text: createElement({
+                classList: ["text"]
+            }),
+
+            content: createElement({
+                classList: ["content"],
+            }),
+
+            message: createElement({
+                classList: ["message"],
+            })
+        };
+
+        // 初始化
+        #init({
+            parent = MainWindow,
+            eventID = generateUniqueId(),
+            content = "",
+            title = "",
+            iconSrc = "",
+            place = WPlace.Center.Bottom,
+            time = 30000
+        } = {}) {
+            this.ui.attr("event-id", eventID);
+
+            this.ui.attr("place", TypeCast.analysisPlace(place, true));
+
+            this.#View.content.append(this.#View.title, this.#View.text);
+            this.#View.message.append(this.#View.icon, this.#View.content);
+
+            this.#View.text.textContent = content;
+            this.#View.title.textContent = title;
+            if (iconSrc === "") {
+                this.#View.icon.css("display", "none");
+                this.#View.icon.src = "";
+            } else {
+                this.#View.icon.css("display", "block");
+                this.#View.icon.src = src;
+            }
+
+            setTimeout(() => {
+                this.delete();
+            }, time);
+
+            parent.appendFragment(this.ui);
+            this.ui.show();
+        }
+
+        constructor(obj = {}) {
+            super({
+                delete: () => { }
+            });
+            if (Judge.isObject(obj)) {
+                this.ui = createElement({
+                    tagName: "dialog",
+                    classList: ["w-message"],
+                    child: this.#View.message
                 });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
@@ -2008,10 +2100,15 @@ const WebGUIPro = (function () {
     }
 
     // 判断 ui 是否初始化
-    function IsUiInit(uiClass, ui) {
+    function IsUIInit(uiClass, ui) {
         if (ui.attr("winit") !== `${uiClass.constructor.name}`) {
             ui.attr("winit", uiClass.constructor.name)
         } else return true;
+    }
+
+    // 判断是否是 WebGUIPro ui
+    function IsUI(element) {
+        return element.attr("winit") && element.Class.Callbacks;
     }
 
     const ControlDataList = [
@@ -2091,7 +2188,7 @@ const WebGUIPro = (function () {
     };
 
     const DefaultTheme = (() => {
-        const { transition, animation, bgColor, cursor, borderRadius, border, boxShadow, fontSize, color, borderBottom, opacity, filter } = ThemeProperty;
+        const { padding, animation, bgColor, cursor, borderRadius, border, boxShadow, fontSize, color, borderBottom, opacity, filter } = ThemeProperty;
         return {
             ".w-list": {
                 "*[w-item]:hover": {
@@ -2155,6 +2252,20 @@ const WebGUIPro = (function () {
                 },
                 "&[direction='left']": {
                     [animation]: "WebGUIPro-appear-right-to-left .3s"
+                }
+            },
+            ".w-message": {
+                [bgColor]: "#00000000",
+                [border]: "none",
+                ".message": {
+                    [padding]: "4px",
+                    [bgColor]: "#fff",
+                    [borderRadius]: "8px",
+                    [border]: "solid 1.5px #c9c9c9dd",
+                    [boxShadow]: "0 0 30px 6px #3333332a"
+                },
+                "&::backdrop": {
+                    [bgColor]: "#00000000"
                 }
             },
             ".w-window-flags": {
@@ -2234,19 +2345,39 @@ const WebGUIPro = (function () {
     function setTheme(Theme = DefaultTheme) {
         const property = elementStyle.getProperty(Theme);
         const illegalProperty = TypeCast.findExtraItemsInFirstArray(property, TypeCast.objectValueToArray(ThemeProperty));
-        if (illegalProperty) {
-            throw UI_Error.CustomError("Theme property illegal", illegalProperty);
-        }
+        if (illegalProperty) throw UI_Error.CustomError("Theme property illegal", illegalProperty);
         elementStyle.set("WebGUIPro-Theme", Theme);
     }
 
     function addTheme(Theme = DefaultTheme) {
         const property = elementStyle.getProperty(Theme);
         const illegalProperty = TypeCast.findExtraItemsInFirstArray(property, TypeCast.objectValueToArray(ThemeProperty));
-        if (illegalProperty) {
-            throw UI_Error.CustomError("Theme property illegal", illegalProperty);
-        }
+        if (illegalProperty) throw UI_Error.CustomError("Theme property illegal", illegalProperty);
         elementStyle.add("WebGUIPro-Theme", Theme);
+    }
+
+    function setUITheme(uiClassName, Theme = {}) {
+        const uiSelector = `.${uiClassName}`;
+        const uiTheme = {
+            [uiSelector]: Theme
+        };
+
+        const property = elementStyle.getProperty(uiTheme);
+        const illegalProperty = TypeCast.findExtraItemsInFirstArray(property, TypeCast.objectValueToArray(ThemeProperty));
+        if (illegalProperty) throw UI_Error.CustomError("Theme property illegal", illegalProperty);
+        elementStyle.set(`WebGUIPro-ui-${uiClassName}-Theme`, uiTheme);
+    }
+
+    function addUITheme(uiClassName, Theme = {}) {
+        const uiSelector = `.${uiClassName}`;
+        const uiTheme = {
+            [uiSelector]: Theme
+        };
+
+        const property = elementStyle.getProperty(uiTheme);
+        const illegalProperty = TypeCast.findExtraItemsInFirstArray(property, TypeCast.objectValueToArray(ThemeProperty));
+        if (illegalProperty) throw UI_Error.CustomError("Theme property illegal", illegalProperty);
+        elementStyle.add(`WebGUIPro-ui-${uiClassName}-Theme`, uiTheme);
     }
 
     function render(stylepath = null) {
@@ -2282,9 +2413,18 @@ const WebGUIPro = (function () {
 
         addTheme,
         setTheme,
+        setUITheme,
+        addUITheme,
+
+        IsUI,
 
         DefaultTheme,
         ThemeProperty,
+
+        UI,
+        UI2,
+        WidgetUI,
+        WidgetUI2,
 
         WItem,
         WindowFlags,
@@ -2300,7 +2440,8 @@ const WebGUIPro = (function () {
         Dialog,
         Activity,
         Drawer,
-        Floating
+        Floating,
+        Message
     };
 })();
 
