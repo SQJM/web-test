@@ -223,6 +223,23 @@ const WebUtilPro = (function () {
     }
   };
 
+  const WVarType = {
+    string: "string",
+    number: "number",
+    float: "float",
+    boolean: "boolean",
+    null: "null",
+    undefined: "undefined",
+    symbol: "symbol",
+    bigInt: "bigInt",
+    object: "object",
+    array: "array",
+    set: "set",
+    map: "map",
+    class: "class",
+    function: "function"
+  };
+
   /**
    * 用于获取指定的 DOM 元素及相关方法的对象
    *
@@ -1956,6 +1973,7 @@ const WebUtilPro = (function () {
     WEvent,
     WEventLevel,
     WInputType,
+    WVarType,
     WPlace,
     WWindowModel,
     WWindowOperation,

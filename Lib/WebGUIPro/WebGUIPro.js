@@ -34,6 +34,7 @@ const WebGUIPro = (function () {
         uniquenessElement,
         createElement,
         WDirection,
+        WVarType,
         WWindowOperation,
         WPlace
     } = WebUtilPro;
@@ -820,7 +821,7 @@ const WebGUIPro = (function () {
             const map = _ConfigToMap(this.ui.attr("w-edit-config"));
             _InitUIConfigCallbackEvent(map, this);
             if (Judge.isMap(map)) {
-                
+                if (map.has("readObly")) this.setReadObly();
             }
         }
 
@@ -841,12 +842,12 @@ const WebGUIPro = (function () {
         }
 
         // 获取值
-        getValue(returnType = String) {
-            if (returnType === String) {
+        getValue(returnType = WVarType.string) {
+            if (returnType === WVarType.string) {
                 return this.ui.value;
-            } else if (returnType === Number) {
+            } else if (returnType === WVarType.number) {
                 return parseInt(this.ui.value);
-            } else if (returnType === "Float") {
+            } else if (returnType === WVarType.float) {
                 return parseFloat(this.ui.value);
             } else throw UI_Error.ParameterMismatch(returnType);
         }
@@ -929,6 +930,8 @@ const WebGUIPro = (function () {
             const map = _ConfigToMap(this.ui.attr("w-text-config"));
             _InitUIConfigCallbackEvent(map, this);
             if (Judge.isMap(map)) {
+                if (map.has("resizeMode")) this.setResizeMode(map.get("resizeMode"));
+                if (map.has("readObly")) this.setReadObly();
             }
         }
 
