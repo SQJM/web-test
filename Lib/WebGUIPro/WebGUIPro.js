@@ -1632,6 +1632,43 @@ const WebGUIPro = (function () {
             this.ui.showModal(position);
         }
 
+        // 设置坐标 x
+        setX(x) {
+            if (this.#DraggableClass) {
+                this.#DraggableClass.setTransformX(x);
+            } else {
+                this.ui.css({ left: `${x}px` });
+            }
+        }
+
+        // 设置坐标 y
+        setY(y) {
+            if (this.#DraggableClass) {
+                this.#DraggableClass.setTransformY(y);
+            } else {
+                this.ui.css({ top: `${y}px` });
+            }
+        }
+
+        // 设置内容
+        setContent(view = "" || HTMLElement, isRender = true) {
+            if (WView.Is(view)) {
+                this.#View.content.innerRemove();
+                view.addClass("content");
+                this.#View.content.appendChild(view);
+            } else if (Judge.isString(view)) {
+                this.#View.content.innerRemove();
+                this.#View.content.appendChild(createElement({
+                    attribute: [["w-view", ""]],
+                    classList: ["content"],
+                    text: view
+                }));
+            } else {
+                throw UI_Error.ParameterMismatch(view);
+            }
+            isRender && anewRender(this.#View.content);
+        }
+
         // 初始化窗口出现位置
         #initPosition(position) {
             const wH = MainWindow.rect().height;
