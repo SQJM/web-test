@@ -487,7 +487,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class ToolUI {
+    class UI2 {
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
             if (this.Callbacks.hasOwnProperty(type)) {
@@ -509,7 +509,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class WindowUI extends ToolUI {
+    class WidgetUI extends UI2 {
         // 显示
         show() {
             this.ui.removeAttr("open");
@@ -566,6 +566,47 @@ const WebGUIPro = (function () {
         setXY(x, y) {
             this.setX(x);
             this.setY(y);
+        }
+
+        // 设置内容
+        setContent(view = "" || HTMLElement, isRender = true) {
+            if (WView.Is(view)) {
+                this.ui.innerRemove();
+                view.addClass("content");
+                this.ui.appendChild(view);
+            } else if (Judge.isString(view)) {
+                this.ui.innerRemove();
+                this.ui.appendChild(createElement({
+                    attribute: [["w-view", ""]],
+                    classList: ["content"],
+                    text: view
+                }));
+            } else {
+                throw UI_Error.ParameterMismatch(view);
+            }
+            isRender && anewRender(this.ui);
+        }
+
+        // 关闭
+        close() {
+            this.ui.close();
+            this.Callbacks.close();
+        }
+
+        constructor(Callbacks) {
+            super(Callbacks);
+        }
+    }
+
+    class WidgetUI2 extends UI2 {
+        // 显示
+        show() {
+            this.ui.w_Event = (event) => {
+                if (event.wEventName !== "click") return;
+                this.close();
+            }
+            this.ui.removeAttr("open");
+            this.ui.showModal();
         }
 
         // 设置内容
@@ -1570,7 +1611,7 @@ const WebGUIPro = (function () {
     }
 
 
-    class Dialog extends WindowUI {
+    class Dialog extends WidgetUI {
         #DraggableClass;
 
         #View = {
@@ -1765,7 +1806,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class Activity extends WindowUI {
+    class Activity extends WidgetUI {
         // 初始化
         #init({
             parent = MainWindow,
@@ -1812,55 +1853,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class Drawer {
-        Callbacks = {
-            delete: () => { },
-            close: () => {
-                this.ui.showModal();
-                switch (this.getDirection()) {
-                    case "bottom":
-                        elementAnimation(this.ui, "WebGUIPro-appear-bottom-to-top .2s reverse forwards", () => { this.delete() });
-                        break;
-                    case "top":
-                        elementAnimation(this.ui, "WebGUIPro-appear-top-to-bottom .2s reverse forwards", () => { this.delete() });
-                        break;
-                    case "right":
-                        elementAnimation(this.ui, "WebGUIPro-appear-left-to-right .2s reverse forwards", () => { this.delete() });
-                        break;
-                    case "left":
-                        elementAnimation(this.ui, "WebGUIPro-appear-right-to-left .2s reverse forwards", () => { this.delete() });
-                        break;
-                    default: this.delete(); break;
-                }
-            }
-        };
-
-        // 设置回调
-        setCallback(type = "delete", fn = () => { }) {
-            if (this.Callbacks.hasOwnProperty(type)) {
-                this.Callbacks[type] = fn;
-            } else {
-                throw UI_Error.ParameterMismatch(type);
-            }
-        }
-
-        // 删除 ui
-        delete() {
-            _DeleteSonUi(this.ui);
-            this.Callbacks.delete();
-            this.ui.remove();
-        }
-
-        // 显示
-        show() {
-            this.ui.w_Event = (event) => {
-                if (event.wEventName !== "click") return;
-                this.close();
-            }
-            this.ui.removeAttr("open");
-            this.ui.showModal();
-        }
-
+    class Drawer extends WidgetUI2 {
         // 设置出现方向
         setDirection(direction) {
             if (!Judge.isValueInObject(direction, WDirection)) throw UI_Error.ParameterMismatch(direction);
@@ -1870,31 +1863,6 @@ const WebGUIPro = (function () {
         // 获取 ui 出现方向
         getDirection() {
             return this.ui.attr("direction");
-        }
-
-        // 设置内容
-        setContent(view = "" || HTMLElement, isRender = true) {
-            if (WView.Is(view)) {
-                this.ui.innerRemove();
-                view.addClass("content");
-                this.ui.appendChild(view);
-            } else if (Judge.isString(view)) {
-                this.ui.innerRemove();
-                this.ui.appendChild(createElement({
-                    attribute: [["w-view", ""]],
-                    classList: ["content"],
-                    text: view
-                }));
-            } else {
-                throw UI_Error.ParameterMismatch(view);
-            }
-            isRender && anewRender(this.ui);
-        }
-
-        // 关闭
-        close() {
-            this.ui.close();
-            this.Callbacks.close();
         }
 
         // 初始化
@@ -1911,6 +1879,27 @@ const WebGUIPro = (function () {
         }
 
         constructor(obj = {}) {
+            super({
+                delete: () => { },
+                close: () => {
+                    this.ui.showModal();
+                    switch (this.getDirection()) {
+                        case "bottom":
+                            elementAnimation(this.ui, "WebGUIPro-appear-bottom-to-top .2s reverse forwards", () => { this.delete() });
+                            break;
+                        case "top":
+                            elementAnimation(this.ui, "WebGUIPro-appear-top-to-bottom .2s reverse forwards", () => { this.delete() });
+                            break;
+                        case "right":
+                            elementAnimation(this.ui, "WebGUIPro-appear-left-to-right .2s reverse forwards", () => { this.delete() });
+                            break;
+                        case "left":
+                            elementAnimation(this.ui, "WebGUIPro-appear-right-to-left .2s reverse forwards", () => { this.delete() });
+                            break;
+                        default: this.delete(); break;
+                    }
+                }
+            });
             if (Judge.isObject(obj)) {
                 this.ui = createElement({
                     tagName: "dialog",
@@ -1924,83 +1913,8 @@ const WebGUIPro = (function () {
         }
     }
 
-    class Floating {
+    class Floating extends WidgetUI {
         #DraggableClass;
-
-        Callbacks = {
-            delete: () => { },
-            close: () => { }
-        };
-
-        // 设置回调
-        setCallback(type = "delete", fn = () => { }) {
-            if (this.Callbacks.hasOwnProperty(type)) {
-                this.Callbacks[type] = fn;
-            } else {
-                throw UI_Error.ParameterMismatch(type);
-            }
-        }
-
-        // 删除 ui
-        delete() {
-            _DeleteSonUi(this.ui);
-            this.Callbacks.delete();
-            this.ui.remove();
-        }
-
-        // 显示
-        show() {
-            this.ui.removeAttr("open");
-            this.ui.show();
-        }
-
-        // 模态显示
-        showModal() {
-            this.ui.removeAttr("open");
-            this.ui.showModal();
-        }
-
-        // 设置窗口操作
-        setWindowOperation(operation = WWindowOperation.default) {
-            if (!Judge.isValueInObject(operation, WWindowOperation)) throw UI_Error.ParameterMismatch(operation);
-            this.ui.removeClass([
-                "w-resize-none",
-                "w-resize-both",
-                "w-resize-horizontal",
-                "w-resize-vertical"
-            ]);
-            this.ui.addClass(`w-resize-${operation}`);
-        }
-
-        // 设置最大宽度
-        setMaxWidth(width) {
-            this.ui.css({ maxWidth: `${width}px` });
-        }
-
-        // 设置最大高度
-        setMaxHeight(height) {
-            this.ui.css({ maxHeight: `${height}px` });
-        }
-
-        // 设置最小宽度
-        seMinWidth(width) {
-            this.ui.css({ minWidth: `${width}px` });
-        }
-
-        // 设置最小高度
-        setMinHeight(height) {
-            this.ui.css({ minHeight: `${height}px` });
-        }
-
-        // 设置宽度
-        setWidth(width) {
-            this.ui.css({ width: `${width}px` });
-        }
-
-        // 设置高度
-        setHeight(height) {
-            this.ui.css({ height: `${height}px` });
-        }
 
         // 设置坐标 x
         setX(x) {
@@ -2018,37 +1932,6 @@ const WebGUIPro = (function () {
             } else {
                 this.ui.css({ top: `${y}px` });
             }
-        }
-
-        // 设置坐标 x,y
-        setXY(x, y) {
-            this.setX(x);
-            this.setY(y);
-        }
-
-        // 设置内容
-        setContent(view = "" || HTMLElement, isRender = true) {
-            if (WView.Is(view)) {
-                this.ui.innerRemove();
-                view.addClass("content");
-                this.ui.appendChild(view);
-            } else if (Judge.isString(view)) {
-                this.ui.innerRemove();
-                this.ui.appendChild(createElement({
-                    attribute: [["w-view", ""]],
-                    classList: ["content"],
-                    text: view
-                }));
-            } else {
-                throw UI_Error.ParameterMismatch(view);
-            }
-            isRender && anewRender(this.ui);
-        }
-
-        // 关闭
-        close() {
-            this.ui.close();
-            this.Callbacks.close();
         }
 
         // 初始化
@@ -2084,6 +1967,10 @@ const WebGUIPro = (function () {
         }
 
         constructor(obj = {}) {
+            super({
+                delete: () => { },
+                close: () => { }
+            });
             if (Judge.isObject(obj)) {
                 this.ui = createElement({
                     tagName: "dialog",
