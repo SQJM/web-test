@@ -1,0 +1,50 @@
+*[rotate90] {
+    transform: rotate(90deg);
+}
+
+*[rotate180] {
+    transform: rotate(180deg);
+}
+
+*[rotate270] {
+    transform: rotate(270deg);
+}
+
+*[rotate360] {
+    transform: rotate(360deg);
+}
+
+*[user-select] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+@font-face {
+    font-family: "VictorMono-Medium";
+    src: url(../Assets/font/VictorMono-Medium/VictorMono-Medium.ttf);
+}
+
+* {
+    /* user-select: none;
+    -webkit-user-select: none; */
+    font-family: "VictorMono-Medium", sans-serif;
+}
+
+:fullscreen {
+    font-size: 20px;
+}
+
+#MainWindow[fullscreen] * {
+    font-size: 20px;
+}
+
+::selection {
+    color: aliceblue;
+    background-color: #00b3ff;
+}
+
+body {
+}
+
+/*-------------------------------------------------------*/
+

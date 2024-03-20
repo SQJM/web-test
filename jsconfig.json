@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "ES6"
+    },
+    "include": [
+        "Lib/**/*.js",
+        "Script/**/*.js",
+        "Plugin/**/*.js"
+    ]
+}
