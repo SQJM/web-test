@@ -2020,6 +2020,10 @@ const WebGUIPro = (function () {
 
             message: createElement({
                 classList: ["message"],
+            }),
+
+            messageBox: createElement({
+                classList: ["message-box"],
             })
         };
 
@@ -2031,11 +2035,9 @@ const WebGUIPro = (function () {
             title = "",
             iconSrc = "",
             place = WPlace.Center.Bottom,
-            time = 30000
+            time = 3000
         } = {}) {
             this.ui.attr("event-id", eventID);
-
-            this.ui.attr("place", TypeCast.analysisPlace(place, true));
 
             this.#View.content.append(this.#View.title, this.#View.text);
             this.#View.message.append(this.#View.icon, this.#View.content);
@@ -2051,22 +2053,37 @@ const WebGUIPro = (function () {
             }
 
             setTimeout(() => {
-                this.delete();
+                this.Callbacks.remove(this.#View.message);
             }, time);
 
-            parent.appendFragment(this.ui);
-            this.ui.show();
+            const existUI = $(`[event-id="${eventID}"]`)[0];
+            if (existUI) {
+                this.ui = existUI;
+                this.ui.$(">.message-box")[0].appendChild(this.#View.message);
+            } else {
+                this.ui.attr("place", TypeCast.analysisPlace(place, true));
+                this.#View.messageBox.appendChild(this.#View.message);
+                parent.appendFragment(this.ui);
+                this.ui.show();
+            }
+            this.ui.scrollTo(0, this.ui.rect().height);
         }
 
         constructor(obj = {}) {
             super({
-                delete: () => { }
+                delete: () => { },
+                remove: message => {
+                    elementAnimation(message, "WebGUIPro-scale-opacity .3s reverse forwards", () => {
+                        message.remove();
+                        if (!this.ui.$(">.message-box")[0].firstElementChild) this.delete();
+                    });
+                }
             });
             if (Judge.isObject(obj)) {
                 this.ui = createElement({
                     tagName: "dialog",
                     classList: ["w-message"],
-                    child: this.#View.message
+                    child: this.#View.messageBox
                 });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
@@ -2188,7 +2205,7 @@ const WebGUIPro = (function () {
     };
 
     const DefaultTheme = (() => {
-        const { padding, animation, bgColor, cursor, borderRadius, border, boxShadow, fontSize, color, borderBottom, opacity, filter } = ThemeProperty;
+        const { margin, padding, animation, bgColor, cursor, borderRadius, border, boxShadow, fontSize, color, borderBottom, opacity, filter } = ThemeProperty;
         return {
             ".w-list": {
                 "*[w-item]:hover": {
@@ -2257,12 +2274,17 @@ const WebGUIPro = (function () {
             ".w-message": {
                 [bgColor]: "#00000000",
                 [border]: "none",
+                ".message-box": {
+                    [bgColor]: "#00000000"
+                },
                 ".message": {
+                    [animation]: "WebGUIPro-scale-bounce .3s",
                     [padding]: "4px",
                     [bgColor]: "#fff",
                     [borderRadius]: "8px",
                     [border]: "solid 1.5px #c9c9c9dd",
-                    [boxShadow]: "0 0 30px 6px #3333332a"
+                    [margin]: "6px",
+                    [boxShadow]: "0 0 5px #3333332a"
                 },
                 "&::backdrop": {
                     [bgColor]: "#00000000"

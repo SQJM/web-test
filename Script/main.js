@@ -58,7 +58,15 @@ function init() {
 
     { // test 4
         new WebGUIPro.Message({
-            content: "hello world!"
+            eventID: "1",
+            content: "hello world!",
+            place: WPlace.Center.Top,
+            time: 3000
+        });
+        new WebGUIPro.Message({
+            eventID: "1",
+            content: "hello world!1",
+            time: 6000
         });
     }
 }

@@ -1506,7 +1506,7 @@ const WebUtilPro = (function () {
   function elementAnimation(element, an, fn = () => { }) {
     element.style.animation = "";
     element.style.animation = an;
-    element.addEventListener("animationend", () => {
+    element.addEvent("animationend", () => {
       element.style.animation = "";
       fn(element);
     });
