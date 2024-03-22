@@ -2388,6 +2388,22 @@ const WebUtilPro = (function () {
       }
     }
   });
+  MainWindow.addEvent("contextmenu", function (event) {
+    const TargetElement = event.target;
+    event.wEventName = "contextmenu";
+    {
+      { // 触发事件
+        if (!TargetElement.w_Event)
+          TargetElement.w_Event = () => { }
+        TargetElement.w_Event(event);
+      }
+      { // 触发元素回调事件
+        if (TargetElement.hasAttr("w-callback-contextmenu")) {
+          window[TargetElement.getAttribute("w-callback-contextmenu")](event);
+        }
+      }
+    }
+  });
 
   document.addEvent("mousemove", (event) => {
     WMouseClientX = event.pageX;

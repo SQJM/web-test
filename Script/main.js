@@ -69,6 +69,38 @@ function init() {
             time: 6000
         });
     }
+
+    { // test5
+        MainWindow.addEvent("contextmenu", (event) => {
+            event.preventDefault();
+            const f = new WebGUIPro.ContextMenu({
+                eventID: "hello",
+                items: [
+                    {
+                        text: "iterm2",
+                        key: "ctrl s"
+                    },
+                    null,
+                    {
+                        text: "iterm3",
+                        more: {
+
+                        }
+                    },
+                    {
+                        text: "iterm4",
+                        callback: (event) => {
+                            f.delete();
+                        }
+                    }
+                ],
+                x: event.pageX,
+                y: event.pageY
+            });
+            f.setCallback("close", () => { f.delete() })
+            f.show();
+        })
+    }
 }
 
 function test1() {
@@ -95,6 +127,7 @@ function test3() {
 
 window.onload = () => {
     render("./Lib/WebGUIPro");
+    WebGUIPro.setTheme();
     _INIT_PAGE_WebUtilPro_(() => {
         init();
     }, 300);

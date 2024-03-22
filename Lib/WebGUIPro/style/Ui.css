@@ -311,6 +311,64 @@
 }
 
 /*=============================================================================================================================================================*/
+.w-contextmenu[open] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: block;
+    min-width: 200px;
+    min-height: 40px;
+    max-width: 100dvw;
+    max-height: 100dvw;
+    overflow: auto;
+    outline: none;
+
+    .item {
+        min-width: 200px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+
+        .left {
+            pointer-events: none;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .right {
+            pointer-events: none;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        *[none] {
+            opacity: 0;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .more {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .split {
+        width: calc(100% - 4px);
+        height: 2px;
+        pointer-events: none;
+    }
+}
+
+/*=============================================================================================================================================================*/
 
 w-test {
     color: #aaf1ff10;

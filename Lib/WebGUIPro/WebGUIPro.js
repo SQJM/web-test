@@ -640,6 +640,44 @@ const WebGUIPro = (function () {
         }
     }
 
+    class WidgetUI3 extends UI2 {
+        // 显示
+        show() {
+            this.ui.w_Event = (event) => {
+                if (event.wEventName !== "click") return;
+                this.close();
+            }
+            this.ui.removeAttr("open");
+            this.ui.showModal();
+        }
+
+        // 设置坐标 x
+        setX(x) {
+            this.ui.css({ left: `${x}px` });
+        }
+
+        // 设置坐标 y
+        setY(y) {
+            this.ui.css({ top: `${y}px` });
+        }
+
+        // 设置坐标 x,y
+        setXY(x, y) {
+            this.setX(x);
+            this.setY(y);
+        }
+
+        // 关闭
+        close() {
+            this.ui.close();
+            this.Callbacks.close();
+        }
+
+        constructor(Callbacks) {
+            super(Callbacks);
+        }
+    }
+
 
     class WList extends UI {
         #TriggerMode = WEvent.mousedown;
@@ -1003,6 +1041,8 @@ const WebGUIPro = (function () {
                     this.Callbacks.paste(event);
                 } else if (event.wEventName === "cut") {
                     this.Callbacks.cut(event);
+                } else if (event.wEventName === "contextmenu") {
+                    this.Callbacks.contextmenu(event);
                 }
             }
         }
@@ -1014,7 +1054,8 @@ const WebGUIPro = (function () {
                 valueChange: () => { },
                 copy: () => { },
                 paste: () => { },
-                cut: () => { }
+                cut: () => { },
+                contextmenu: () => { }
             }, (map) => {
                 if (map.has("readObly")) this.setReadObly();
             });
@@ -1095,6 +1136,8 @@ const WebGUIPro = (function () {
                     this.Callbacks.paste(event);
                 } else if (event.wEventName === "cut") {
                     this.Callbacks.cut(event);
+                } else if (event.wEventName === "contextmenu") {
+                    this.Callbacks.contextmenu(event);
                 }
             }
         }
@@ -1106,7 +1149,8 @@ const WebGUIPro = (function () {
                 valueChange: () => { },
                 copy: () => { },
                 paste: () => { },
-                cut: () => { }
+                cut: () => { },
+                contextmenu: () => { }
             }, (map) => {
                 if (map.has("readObly")) this.setReadObly();
             });
@@ -2093,6 +2137,122 @@ const WebGUIPro = (function () {
         }
     }
 
+    class ContextMenu extends WidgetUI3 {
+        #List = createElement({
+            classList: ["w-list"],
+            callback: list => { new WList(list) }
+        });
+
+        // 创建项
+        #createItem(item = "" || {}) {
+            const icon = createElement({ classList: ["icon"] });
+            const text = createElement({ classList: ["text"] });
+            const key = createElement({ classList: ["key"] });
+            const more = createElement({ classList: ["more", "material-icons"], html: "&#xe315;" });
+
+            icon.attr("none", "");
+            key.attr("none", "");
+            more.attr("none", "");
+
+            const left = createElement({ classList: ["left"], child: [icon, text] });
+            const right = createElement({ classList: ["right"], child: [key, more] });
+
+            const itemElement = createElement({
+                attribute: [["w-item", ""]],
+                classList: ["item"],
+                child: [left, right]
+            });
+            if (Judge.isObject(item)) {
+                text.textContent = item.text;
+
+                item.icon && (icon.removeAttr("none") && icon.attr("src", item.icon));
+                item.key && (key.removeAttr("none") && (key.textContent = item.key));
+                item.callback && (itemElement.w_Event = (event) => {
+                    if (event.wEventName === "click") {
+                        this.Callbacks.click(itemElement);
+                        item.callback(event);
+                    }
+                });
+
+                item.more && more.removeAttr("none");
+            } else if (Judge.isString(item)) {
+                text.textContent = item;
+            } else if (Judge.isNull(item)) {
+                return createElement({ attribute: [["w-item", ""]], classList: ["split"] })
+            } else {
+                throw UI_Error.ParameterMismatch(item);
+            }
+            return itemElement;
+        }
+
+        // 添加项 
+        addItem(item = "" || {}) {
+            this.#List.Class.addItem(this.#createItem(item));
+        }
+
+        // 添加多项 
+        addItems(items = []) {
+            if (Judge.isArray(items)) {
+                forEnd(items, obj => {
+                    this.#List.Class.addItem(this.#createItem(obj), false);
+                });
+                this.#List.Class.sortItem();
+            } else {
+                throw UI_Error.ParameterMismatch(items);
+            }
+        }
+
+        // 设置内容
+        setContent(items = "" || []) {
+            if (Judge.isArray(items)) {
+                this.#List.Class.removeItemAll();
+                this.addItems(items);
+            } else if (Judge.isString(items)) {
+                this.#List.Class.removeItemAll();
+                this.addItem(items);
+            } else {
+                throw UI_Error.ParameterMismatch(items);
+            }
+        }
+
+        // 初始化
+        #init({
+            parent = MainWindow,
+            eventID = generateUniqueId(),
+            items = {},
+            x = 0,
+            y = 0
+        } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"]`));
+            this.ui.attr("event-id", eventID);
+
+            this.setContent(items);
+            this.setXY(x, y);
+
+            this.ui.removeAttr("open");
+            parent.appendFragment(this.ui);
+        }
+
+        constructor(obj = {}) {
+            super({
+                delete: () => { },
+                click: () => { },
+                close: () => { }
+            });
+            if (Judge.isObject(obj)) {
+                this.ui = createElement({
+                    tagName: "dialog",
+                    classList: ["w-contextmenu"],
+                    child: this.#List
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init(obj);
+        }
+    }
+
     /**
      * 根据指定的规则替换包含在元素内部的文本内容
      * 元素必须具有属性 `w-value-entry`
@@ -2275,16 +2435,16 @@ const WebGUIPro = (function () {
                 [bgColor]: "#00000000",
                 [border]: "none",
                 ".message-box": {
+                    ".message": {
+                        [animation]: "WebGUIPro-scale-bounce .3s",
+                        [padding]: "4px",
+                        [bgColor]: "#fff",
+                        [borderRadius]: "8px",
+                        [border]: "solid 1.5px #c9c9c9dd",
+                        [margin]: "6px",
+                        [boxShadow]: "0 0 5px #3333332a"
+                    },
                     [bgColor]: "#00000000"
-                },
-                ".message": {
-                    [animation]: "WebGUIPro-scale-bounce .3s",
-                    [padding]: "4px",
-                    [bgColor]: "#fff",
-                    [borderRadius]: "8px",
-                    [border]: "solid 1.5px #c9c9c9dd",
-                    [margin]: "6px",
-                    [boxShadow]: "0 0 5px #3333332a"
                 },
                 "&::backdrop": {
                     [bgColor]: "#00000000"
@@ -2360,6 +2520,30 @@ const WebGUIPro = (function () {
                 "*[w-item]:hover": {
                     [color]: "#666"
                 }
+            },
+            ".w-contextmenu": {
+                [animation]: "WebGUIPro-opacity .2s",
+                [padding]: "4px",
+                [bgColor]: "#fff",
+                [borderRadius]: "8px",
+                [border]: "solid 1.5px #c9c9c9dd",
+                [boxShadow]: "0 0 30px 6px #3333332a",
+                ".item": {
+                    [padding]: "4px",
+                    [bgColor]: "#fff",
+                    [borderRadius]: "8px",
+                    ".key": {
+                        [color]: "#666"
+                    }
+                },
+                ".split": {
+                    [margin]: "2px",
+                    [borderRadius]: "5px",
+                    [bgColor]: "#ececec"
+                },
+                "&::backdrop": {
+                    [bgColor]: "#00000000"
+                }
             }
         }
     })();
@@ -2409,7 +2593,6 @@ const WebGUIPro = (function () {
                 [stylepath + "Ui.css", null, _WebUtilPro__STYLE_ELEMENT]
             ]);
         }
-        setTheme();
         anewRender();
     }
 
@@ -2447,6 +2630,7 @@ const WebGUIPro = (function () {
         UI2,
         WidgetUI,
         WidgetUI2,
+        WidgetUI3,
 
         WItem,
         WindowFlags,
@@ -2463,7 +2647,8 @@ const WebGUIPro = (function () {
         Activity,
         Drawer,
         Floating,
-        Message
+        Message,
+        ContextMenu
     };
 })();
 
