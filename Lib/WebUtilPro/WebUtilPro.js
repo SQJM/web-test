@@ -113,11 +113,7 @@ const WebUtilPro = (function () {
     /** 默认模式 */
     default: "default",
     /** 全屏模式 */
-    fullscreen: "fullscreen",
-    /** 最小化模式 */
-    min: "min",
-    /** 最大化模式 */
-    max: "max"
+    fullscreen: "fullscreen"
   };
 
   /**
@@ -196,6 +192,16 @@ const WebUtilPro = (function () {
     Left: "left",
     /** 右侧 */
     Right: "right"
+  };
+
+  /**
+   * 定义布局方向
+   */
+  const WLayoutDirection = {
+    /** 垂直 */
+    vertical: "vertical",
+    /** 水平 */
+    horizontal: "horizontal"
   };
 
   /**
@@ -308,134 +314,135 @@ const WebUtilPro = (function () {
    * 用于判断各种数据类型的工具类
    */
   class Judge {
+
     /**
      * 判断给定的参数是否为字符串类型
-     * @param {any} str - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是字符串类型,则返回 true;否则返回 false
      */
-    static isString(str) {
-      return typeof str === 'string' || str instanceof String;
+    static isString(...args) {
+      return Judge.IS(it => (typeof it === 'string' || it instanceof String), ...args);
     }
 
     /**
      * 判断给定的参数是否为 null
-     * @param {any} value - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 null,则返回 true;否则返回 false
      */
-    static isNull(value) {
-      return value === null;
+    static isNull(...args) {
+      return Judge.IS(it => (it === null), ...args);
     }
 
     /**
      * 判断给定的参数是否为 undefined
-     * @param {any} value - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 undefined,则返回 true;否则返回 false
      */
-    static isUndefined(value) {
-      return typeof value === 'undefined';
+    static isUndefined(...args) {
+      return Judge.IS(it => (typeof it === 'undefined'), ...args);
     }
 
     /**
      * 判断给定的参数是否为 NaN
-     * @param {any} value - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 NaN,则返回 true;否则返回 false
      */
-    static isNaN(value) {
-      return Number.isNaN(value);
+    static isNaN(...args) {
+      return Judge.IS(it => (Number.isNaN(it)), ...args);
     }
 
     /**
      * 判断给定的参数是否为函数类型
-     * @param {any} func - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是函数类型,则返回 true;否则返回 false
      */
-    static isFunction(func) {
-      return typeof func === 'function' || func instanceof Function;
+    static isFunction(...args) {
+      return Judge.IS(it => (typeof it === 'function' || it instanceof Function), ...args);
     }
 
     /**
      * 判断给定的参数是否为类class类型
-     * @param {any} obj - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是类类型,则返回 true;否则返回 false
      */
-    static isClass(obj) {
-      return typeof obj === 'function' && /^\s*class\s+/.test(obj.toString());
+    static isClass(...args) {
+      return Judge.IS(it => (typeof it === 'function' && /^\s*class\s+/.test(it.toString())), ...args);
     }
 
     /**
      * 判断给定的参数是否为普通对象即非数组`非函数`非 null 的对象
-     * @param {any} obj - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是普通对象,则返回 true;否则返回 false
      */
-    static isPlainObject(obj) {
-      return Object.prototype.toString.call(obj) === '[object Object]';
+    static isPlainObject(...args) {
+      return Judge.IS(it => (Object.prototype.toString.call(it) === '[object Object]'), ...args);
     }
 
     /**
      * 判断给定的参数是否为数组类型
-     * @param {any} arr - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是数组类型,则返回 true;否则返回 false
      */
-    static isArray(arr) {
-      return Array.isArray(arr);
+    static isArray(...args) {
+      return Judge.IS(it => (Array.isArray(it)), ...args);
     }
 
     /**
      * 判断给定的参数是否为 Set 类型
-     * @param {any} set - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 Set 类型,则返回 true;否则返回 false
      */
-    static isSet(set) {
-      return set instanceof Set;
+    static isSet(...args) {
+      return Judge.IS(it => (it instanceof Set), ...args);
     }
 
     /**
      * 判断给定的参数是否为 Map 类型
-     * @param {any} map - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 Map 类型,则返回 true;否则返回 false
      */
-    static isMap(map) {
-      return map instanceof Map;
+    static isMap(...args) {
+      return Judge.IS(it => (it instanceof Map), ...args);
     }
 
     /**
      * 判断给定的参数是否为数字类型
-     * @param {any} num - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是数字类型,则返回 true;否则返回 false
      */
-    static isNumber(num) {
-      return typeof num === 'number' || num instanceof Number;
+    static isNumber(...args) {
+      return Judge.IS(it => (typeof it === 'number' || it instanceof Number), ...args);
     }
 
     /**
      * 判断给定的参数是否为布尔类型
-     * @param {any} bool - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是布尔类型,则返回 true;否则返回 false
      */
-    static isBoolean(bool) {
-      return typeof bool === 'boolean' || bool instanceof Boolean;
+    static isBoolean(...args) {
+      return Judge.IS(it => (typeof it === 'boolean' || it instanceof Boolean), ...args);
     }
 
     /**
      * 判断给定的参数是否为负数
-     * @param {number} num - 要检查的参数
+     * @param {number} ...args - 要检查的参数
      * @returns {boolean} 如果参数是负数,则返回 true;否则返回 false
      */
-    static isNegative(num) {
-      return num < 0;
+    static isNegative(...args) {
+      return Judge.IS(it => (it < 0), ...args);
     }
 
     /**
      * 判断给定的参数是否为正数
-     * @param {number} num - 要检查的参数
+     * @param {number} ...args - 要检查的参数
      * @returns {boolean} 如果参数是正数,则返回 true;否则返回 false
      */
-    static isPositive(num) {
-      return num > 0;
+    static isPositive(...args) {
+      return Judge.IS(it => (it > 0), ...args);
     }
 
     /**
-     * 判断给定的参数是否为对象类型包括普通对象、数组、null等，并检测对象是否包含指定属性
+     * 判断给定的参数是否为对象类型包括普通对象,数组,null等，并检测对象是否包含指定属性
      * @param {any} obj - 要检查的参数
      * @param {...string} props - 要检测的属性列表
      * @returns {boolean} 如果参数是对象类型且包含指定属性，则返回 true;否则返回 false
@@ -452,20 +459,20 @@ const WebUtilPro = (function () {
 
     /**
      * 判断给定的参数是否为空对象
-     * @param {any} obj - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是空对象,则返回 true;否则返回 false
      */
-    static isEmptyObject(obj) {
-      return typeof obj === 'object' && obj !== null && Object.keys(obj).length === 0;
+    static isEmptyObject(...args) {
+      return Judge.IS(it => (typeof it === 'object' && it !== null && Object.keys(it).length === 0), ...args);
     }
 
     /**
      * 判断给定的参数是否为 HTMLElement 类型即 DOM 元素
-     * @param {any} obj - 要检查的参数
+     * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是 HTMLElement 类型,则返回 true;否则返回 false
      */
-    static isHTMLElement(obj) {
-      return typeof obj === 'object' && obj.nodeType === 1 && typeof obj.style === 'object' && typeof obj.ownerDocument === 'object';
+    static isHTMLElement(...args) {
+      return Judge.IS(it => (typeof it === 'object' && it.nodeType === 1 && typeof it.style === 'object' && typeof it.ownerDocument === 'object'), ...args);
     }
 
     /**
@@ -478,36 +485,35 @@ const WebUtilPro = (function () {
 
     /**
      * 判断变量是否有内容或数据
-     * @param {any} variable 要判断的变量
+     * @param {any} ...args - 要判断的变量
      * @returns {Boolean} 布尔值
      */
-    static isTrue(variable) {
-      return variable !== null && variable !== void 0 && variable !== false;
+    static isTrue(...args) {
+      return Judge.IS(it => (it !== null && it !== void 0 && it !== false), ...args);
     }
 
     /**
      * 判断变量是否为 false
-     * @param {any} variable 要判断的变量
+     * @param {any} ...args - 要判断的变量
      * @returns {Boolean} 布尔值
      */
-    static isFalse(variable) {
-      return variable === null || variable === void 0 || variable === false;
+    static isFalse(...args) {
+      return Judge.IS(it => (it === null || it === void 0 || it === false), ...args);
     }
 
     /**
      * 判断变量是否为空字符串
-     * @param {any} variable 要判断的变量
+     * @param {any} ...args - 要判断的变量
      * @returns {Boolean} 布尔值
      */
-    static isEmptyString(variable) {
-      return Judge.isString(variable) && variable.trim() === '';
+    static isEmptyString(...args) {
+      return Judge.IS(it => (Judge.isString(it) && it.trim() === ''), ...args);
     }
 
     /**
      * 判断给定的值是否为对象中的一个值
-     * 
-     * @param {any} value 需要检查的值
-     * @param {Object} obj 对象,其属性值将被检查
+     * @param {any} value - 需要检查的值
+     * @param {Object} obj - 对象,其属性值将被检查
      * @returns {Boolean} 如果`value`是`obj`中的一个值,则返回`true`;否则返回`false`
      */
     static isValueInObject(value, obj) {
@@ -531,7 +537,22 @@ const WebUtilPro = (function () {
 
       return false;
     }
+
+    /**
+     * 判断给定参数是否满足指定条件
+     * @param {Function} fn - 条件函数
+     * @param {...any} args - 要检查的参数
+     * @returns {boolean} 如果所有参数均满足条件函数,则返回 true;否则返回 false
+     */
+    static IS(fn = () => { }, ...args) {
+      for (const it of args) {
+        const result = fn(it);
+        if (!result) return false;
+      }
+      return true;
+    }
   }
+
 
   /**
    * 用于类型转换或获取的工具类
@@ -929,8 +950,7 @@ const WebUtilPro = (function () {
     }
 
     setTransformXY(x, y) {
-      const { top = -Infinity, bottom = Infinity, left = -Infinity, right = Infinity } =
-        this.limit;
+      const { top = -Infinity, bottom = Infinity, left = -Infinity, right = Infinity } = this.limit;
 
       if (y <= top) {
         y = top;
@@ -1997,6 +2017,7 @@ const WebUtilPro = (function () {
     Code_Error,
 
     WDirection,
+    WLayoutDirection,
     WSortord,
     WEvent,
     WEventLevel,

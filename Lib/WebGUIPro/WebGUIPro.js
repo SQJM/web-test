@@ -36,7 +36,10 @@ const WebGUIPro = (function () {
         WDirection,
         WSortord,
         WVarType,
+        WWindowModel,
         WWindowOperation,
+        WEventLevel,
+        WLayoutDirection,
         WPlace
     } = WebUtilPro;
 
@@ -69,9 +72,9 @@ const WebGUIPro = (function () {
     }
 
     // 最大宽度
-    const MAX_WIDTH = 300000;
+    const MAX_WIDTH = window.innerWidth;
     // 最大高度
-    const MAX_HEIGHT = 300000;
+    const MAX_HEIGHT = window.innerHeight;
 
     // 删除子 ui
     function _DeleteSonUi(ui) {
@@ -507,6 +510,58 @@ const WebGUIPro = (function () {
 
         constructor(Callbacks) {
             this.Callbacks = Callbacks;
+        }
+    }
+
+    class UI3 extends UI {
+        // 获取值
+        getValue(returnType = WVarType.string) {
+            if (returnType === WVarType.string) {
+                return this.ui.value;
+            } else if (returnType === WVarType.number) {
+                return parseInt(this.ui.value);
+            } else if (returnType === WVarType.float) {
+                return parseFloat(this.ui.value);
+            } else throw UI_Error.ParameterMismatch(returnType);
+        }
+
+        // 设置只读
+        setReadObly(bool = true) {
+            bool ? this.ui.attr("readonly", "") : this.ui.removeAttr("readonly");
+        }
+
+        // 设置值
+        setValue(value) {
+            this.ui.value = value;
+        }
+
+        // 清空值
+        removeValue() {
+            this.ui.value = null;
+        }
+
+        // 添加值
+        appValue(value) {
+            this.ui.value = this.ui.value + value;
+        }
+
+        // 设置最大输入长度
+        setMaxLength(length = null) {
+            if (!Judge.isNumber(length) || !Judge.isNull(length)) throw UI_Error.ParameterMismatch(length);
+            Judge.isNull(length) ? this.ui.removeAttr("maxlength") : this.ui.attr("maxlength", length);
+        }
+
+        // 设置 ui 禁用
+        setDisabled(bool = true) {
+            if (bool) {
+                this.ui.attr("disabled", "");
+            } else {
+                this.ui.removeAttr("disabled");
+            }
+        }
+
+        constructor(Callbacks, initUIConfigMap) {
+            super(Callbacks, initUIConfigMap);
         }
     }
 
@@ -988,42 +1043,11 @@ const WebGUIPro = (function () {
         }
     }
 
-    class WEdit extends UI {
-        // 获取值
-        getValue(returnType = WVarType.string) {
-            if (returnType === WVarType.string) {
-                return this.ui.value;
-            } else if (returnType === WVarType.number) {
-                return parseInt(this.ui.value);
-            } else if (returnType === WVarType.float) {
-                return parseFloat(this.ui.value);
-            } else throw UI_Error.ParameterMismatch(returnType);
-        }
-
-        // 设置只读
-        setReadObly(bool = true) {
-            bool ? this.ui.attr("readonly", "") : this.ui.removeAttr("readonly");
-        }
-
-        // 设置最大输入长度
-        setMaxLength(length = null) {
-            if (!Judge.isNumber(length) || !Judge.isNull(length)) throw UI_Error.ParameterMismatch(length);
-            Judge.isNull(length) ? this.ui.removeAttr("maxlength") : this.ui.attr("maxlength", length);
-        }
-
+    class WEdit extends UI3 {
         // 设置类型
         setType(type = WInputType.text) {
             if (!Judge.isValueInObject(type, WInputType)) throw UI_Error.ParameterMismatch(type);
             this.ui.attr("type", type);
-        }
-
-        // 设置 ui 禁用
-        setDisabled(bool = true) {
-            if (bool) {
-                this.ui.attr("disabled", "");
-            } else {
-                this.ui.removeAttr("disabled");
-            }
         }
 
         // 初始化
@@ -1076,38 +1100,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class WText extends UI {
-        // 获取值
-        getValue(returnType = WVarType.string) {
-            if (returnType === WVarType.string) {
-                return this.ui.value;
-            } else if (returnType === WVarType.number) {
-                return parseInt(this.ui.value);
-            } else if (returnType === WVarType.float) {
-                return parseFloat(this.ui.value);
-            } else throw UI_Error.ParameterMismatch(returnType);
-        }
-
-        // 设置只读
-        setReadObly(bool = true) {
-            bool ? this.ui.attr("readonly", "") : this.ui.removeAttr("readonly");
-        }
-
-        // 设置最大输入长度
-        setMaxLength(length = null) {
-            if (!Judge.isNumber(length) || !Judge.isNull(length)) throw UI_Error.ParameterMismatch(length);
-            Judge.isNull(length) ? this.ui.removeAttr("maxlength") : this.ui.attr("maxlength", length);
-        }
-
-        // 设置 ui 禁用
-        setDisabled(bool = true) {
-            if (bool) {
-                this.ui.attr("disabled", "");
-            } else {
-                this.ui.removeAttr("disabled");
-            }
-        }
-
+    class WText extends UI3 {
         // 设置大小调整模式
         setResizeMode(mode = WWindowOperation.both) {
             if (!Judge.isValueInObject(mode, WWindowOperation)) throw UI_Error.ParameterMismatch(mode);
@@ -1655,6 +1648,158 @@ const WebGUIPro = (function () {
         }
     }
 
+    class WSash extends UI {
+        #This;
+        #That;
+        #CurrentPointer;
+        #Width;
+        #Height;
+        #Limit = {
+            min: 0,
+            max: 0
+        }
+
+        // 设置布局
+        setLayout(layoutDirection = WLayoutDirection.vertical) {
+            if (!Judge.isValueInObject(layoutDirection, WLayoutDirection)) throw UI_Error.ParameterMismatch(layoutDirection);
+            this.ui.attr("layout", layoutDirection);
+        }
+
+        // 设置限制
+        setLimit(min = 0, max = 0) {
+            this.#Limit.min = min;
+            this.#Limit.max = max;
+        }
+
+        // 设置这
+        setThis(element = HTMLElement) {
+            if (Judge.isHTMLElement(element)) {
+                this.#This = element;
+            } else {
+                throw UI_Error.ParameterMismatch(element);
+            }
+        }
+
+        // 设置那
+        setThat(element = HTMLElement) {
+            if (Judge.isHTMLElement(element)) {
+                this.#That = element;
+            } else {
+                throw UI_Error.ParameterMismatch(element);
+            }
+        }
+
+        // 同时设置 这 那
+        setThisThat(This = HTMLElement, That = HTMLElement) {
+            this.setThis(This);
+            this.setThat(That);
+        }
+
+        // 设置 ui 禁用
+        setDisabled(bool = true) {
+            if (bool) {
+                this.ui.attr("disabled", "");
+            } else {
+                this.ui.removeAttr("disabled");
+            }
+        }
+
+        #moveV = (event) => {
+            const TargetElement = event.target;
+            if (TargetElement !== this.ui && TargetElement.tagName.toLowerCase() === "iframe") {
+                this.release(event);
+                return;
+            }
+            if (event.pageX <= 1 || event.pageX >= MainWindow.offsetWidth - 5) return;
+            const delta = event.pageX - this.#CurrentPointer;
+            const result = this.#Width + delta;
+            if (!this.Callbacks.move(result, WLayoutDirection.vertical)) {
+                this.release(event);
+                return;
+            }
+            if (result > this.#Limit.max || result < this.#Limit.min) {
+                return;
+            }
+            this.#This.css("width", `${result}px`);
+        }
+        #moveH = (event) => {
+            const TargetElement = event.target;
+            if (TargetElement !== this.ui && TargetElement.tagName.toLowerCase() === "iframe") {
+                this.release(event);
+                return;
+            }
+            if (event.pageY <= 1 || event.pageY >= MainWindow.offsetHeight - 5) return;
+            const delta = event.pageY - this.#CurrentPointer;
+            const result = this.#Height - delta;
+            if (!this.Callbacks.move(result, WLayoutDirection.horizontal)) {
+                this.release(event);
+                return;
+            }
+            if (result > this.#Limit.max || result < this.#Limit.min) {
+                return;
+            }
+            this.#This.css("width", `${result}px`);
+        }
+
+        // 移除事件
+        release = () => {
+            this.#Width = 0; this.#Height = 0;
+            document.removeEvent("mouseup", this.release);
+            document.removeEvent("mousemove", this.#moveV);
+            document.removeEvent("mousemove", this.#moveH);
+        }
+
+        // 初始化
+        #init() {
+            this.initUIConfig();
+
+            this.ui.addEvent("mousedown", (event) => {
+                if (this.ui.attr("layout") === WLayoutDirection.vertical) {
+                    this.#CurrentPointer = event.pageX;
+                    if (this.#This.rect) {
+                        this.#Width = this.#This.rect().width;
+                        document.addEvent("mousemove", this.#moveV);
+                    }
+                } else {
+                    this.#CurrentPointer = event.pageY;
+                    if (this.#This.rect) {
+                        this.#Height = this.#This.rect().height;
+                        document.addEvent("mousemove", this.#moveH);
+                    }
+                }
+                document.addEvent("mouseup", this.release);
+            });
+
+            if (this.ui.attr("layout") === WLayoutDirection.vertical) {
+                this.setLayout();
+            } else {
+                this.setLayout(WLayoutDirection.horizontal);
+            }
+        }
+
+        constructor(Element = null) {
+            super({
+                delete: () => { },
+                move: () => true,
+                dblclick: () => { }
+            }, (map) => {
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else if (Judge.isNull(Element)) {
+                this.ui = createElement({
+                    classList: ["w-sash"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
+
 
     class Dialog extends WidgetUI {
         #DraggableClass;
@@ -1800,6 +1945,7 @@ const WebGUIPro = (function () {
             windowOperation = WWindowOperation.default,
             draggable = true
         } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"].w-dialog`));
             this.ui.attr("event-id", eventID);
 
             this.#View.titleText.textContent = title;
@@ -1870,6 +2016,7 @@ const WebGUIPro = (function () {
             x = 0,
             y = 0
         } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"].w-activity`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(content);
@@ -1923,6 +2070,7 @@ const WebGUIPro = (function () {
             content = "",
             direction = WDirection.Bottom
         } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"].w-drawer`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(content);
@@ -2079,9 +2227,11 @@ const WebGUIPro = (function () {
             title = "",
             iconSrc = "",
             place = WPlace.Center.Bottom,
+            level = WEventLevel.normal,
             time = 3000
         } = {}) {
             this.ui.attr("event-id", eventID);
+            this.ui.attr("level", level);
 
             this.#View.content.append(this.#View.title, this.#View.text);
             this.#View.message.append(this.#View.icon, this.#View.content);
@@ -2100,7 +2250,7 @@ const WebGUIPro = (function () {
                 this.Callbacks.remove(this.#View.message);
             }, time);
 
-            const existUI = $(`[event-id="${eventID}"]`)[0];
+            const existUI = $(`[event-id="${eventID}"].w-message`)[0];
             if (existUI) {
                 this.ui = existUI;
                 this.ui.$(">.message-box")[0].appendChild(this.#View.message);
@@ -2223,7 +2373,7 @@ const WebGUIPro = (function () {
             x = 0,
             y = 0
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"]`));
+            uniquenessElement($(`[event-id="${eventID}"].w-contextMenu`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(items);
@@ -2244,6 +2394,66 @@ const WebGUIPro = (function () {
                     tagName: "dialog",
                     classList: ["w-contextmenu"],
                     child: this.#List
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init(obj);
+        }
+    }
+
+    class Animation extends UI2 {
+        // 关闭动画
+        close() {
+            this.Callbacks.remove();
+        }
+
+        // 设置窗口模式
+        setWindowModel(windowModel = WWindowModel.fullscreen) {
+            if (!Judge.isValueInObject(windowModel, WWindowModel)) throw UI_Error.ParameterMismatch(windowModel);
+            this.ui.attr("window-model", windowModel);
+        }
+
+        // 加载图像
+        loadImage(src = "") {
+            const img = createElement({
+                tagName: "img",
+                attribute: [["src", src]],
+                classList: ["image"]
+            });
+            this.ui.innerClear();
+            this.ui.appendChild(img);
+        }
+
+        // 初始化
+        #init({
+            parent = MainWindow,
+            eventID = generateUniqueId(),
+            windowModel = WWindowModel.fullscreen
+        } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"].w-animation`));
+            this.ui.attr("event-id", eventID);
+
+            this.setWindowModel(windowModel);
+
+            this.ui.show();
+            parent.appendFragment(this.ui);
+        }
+
+        constructor(obj = {}) {
+            super({
+                delete: () => { },
+                remove: () => {
+                    elementAnimation(this.ui, "WebGUIPro-opacity .2s reverse forwards", () => {
+                        this.delete();
+                    });
+                }
+            });
+            if (Judge.isObject(obj)) {
+                this.ui = createElement({
+                    tagName: "dialog",
+                    classList: ["w-animation"]
                 });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
@@ -2296,7 +2506,8 @@ const WebGUIPro = (function () {
         ["text", WText],
         ["fieldset", WFieldset],
         ["stacked", WStacked],
-        ["tab", WTab]
+        ["tab", WTab],
+        ["sash", WSash]
     ];
 
     const ThemeProperty = {
@@ -2544,6 +2755,18 @@ const WebGUIPro = (function () {
                 "&::backdrop": {
                     [bgColor]: "#00000000"
                 }
+            },
+            ".w-animation": {
+                [bgColor]: "#00000010",
+                [border]: "none",
+                "&::backdrop": {
+                    [bgColor]: "#00000000"
+                }
+            },
+            ".w-sash": {
+                "&:hover::after": {
+                    [bgColor]: "#00a1e6"
+                }
             }
         }
     })();
@@ -2628,6 +2851,7 @@ const WebGUIPro = (function () {
 
         UI,
         UI2,
+        UI3,
         WidgetUI,
         WidgetUI2,
         WidgetUI3,
@@ -2642,13 +2866,15 @@ const WebGUIPro = (function () {
         WFieldset,
         WStacked,
         WTab,
+        WSash,
 
         Dialog,
         Activity,
         Drawer,
         Floating,
         Message,
-        ContextMenu
+        ContextMenu,
+        Animation
     };
 })();
 

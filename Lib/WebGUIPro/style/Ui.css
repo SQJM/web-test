@@ -369,9 +369,65 @@
 }
 
 /*=============================================================================================================================================================*/
+.w-sash {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+
+    &::after {
+        content: " ";
+        position: absolute;
+        display: flex;
+    }
+
+    &[layout="horizontal"] {
+        height: 0px;
+        width: 100%;
+
+        &::after {
+            cursor: row-resize;
+            height: 5px;
+            width: 100%;
+        }
+    }
+
+    &[layout="vertical"] {
+        width: 0px;
+        height: 100%;
+
+        &::after {
+            cursor: col-resize;
+            width: 5px;
+            height: 100%;
+        }
+    }
+}
+
+/*=============================================================================================================================================================*/
+.w-animation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+
+    &[window-model="fullscreen"] {
+        position: fixed;
+        width: 100dvw;
+        height: 100dvh;
+        top: 0;
+        left: 0;
+    }
+
+    .image {
+        pointer-events: none;
+    }
+}
+
+/*=============================================================================================================================================================*/
 
 w-test {
-    color: #aaf1ff10;
+    color: #00a1e6;
     cursor: context-menu;
     cursor: pointer;
     animation: forwards reverse;
