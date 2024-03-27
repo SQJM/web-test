@@ -1,0 +1,301 @@
+.w-drop-list {
+    .title {
+        padding: 2px 4px 2px 4px;
+        background-color: #fff;
+        border-radius: 8px;
+        border: solid 1.5px #c9c9c9dd;
+        box-shadow: 0 0 5px #3333332a;
+
+        &:active {
+            scale: 0.95;
+        }
+    }
+
+    .content {
+        margin: 2px;
+        background-color: #f5f5f5;
+        box-shadow: 0 0 5px #cecece;
+        border-radius: 8px;
+
+        &>[w-item] {
+            padding: 2px 4px 2px 4px;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            color: #333;
+        }
+    }
+
+    &[open]>.content {
+        padding: 5px;
+    }
+}
+
+.w-select {
+    .title {
+        padding: 2px 4px 2px 4px;
+        background-color: #fff;
+        border-radius: 8px;
+        border: solid 1.5px #c9c9c9dd;
+        box-shadow: 0 0 5px #3333332a;
+
+        &:active {
+            scale: 0.95;
+        }
+    }
+
+    .content {
+        margin: 2px;
+        background-color: #f5f5f5;
+        box-shadow: 0 0 5px #cecece;
+        border-radius: 8px;
+
+        &>[w-item] {
+            padding: 2px 4px 2px 4px;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            color: #333;
+        }
+    }
+
+    &[open]>.content {
+        padding: 5px;
+    }
+}
+
+.w-list {
+    *[w-item]:hover {
+        background-color: #00000010;
+        cursor: context-menu;
+    }
+
+    *[w-item].select {
+        background-color: #00000030;
+    }
+
+    *[w-item].drag-select {
+        background-color: #00000020;
+    }
+}
+
+.w-dialog {
+    border-radius: 8px;
+    border: solid 1.5px #c9c9c9dd;
+    box-shadow: 0 0 30px 6px #3333332a;
+
+    .title {
+        background-color: #f3f3f3;
+    }
+
+    .content {
+        background-color: #ebebeb;
+    }
+
+    &::backdrop {
+        background-color: #ffffff0f;
+    }
+}
+
+.w-activity {
+    background-color: #ebebeb;
+    border-radius: 8px;
+    border: solid 1.5px #c9c9c9dd;
+    box-shadow: 0 0 30px 6px #3333332a;
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+}
+
+.w-floating {
+    background-color: #ebebeb;
+    border-radius: 8px;
+    border: solid 1.5px #c9c9c9dd;
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+}
+
+.w-drawer {
+    background-color: #ebebeb;
+    border-radius: 8px;
+    border: solid 1.5px #c9c9c9dd;
+    box-shadow: 0 0 30px 6px #3333332a;
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+
+    &[direction='bottom'] {
+        animation: WebGUIPro-appear-bottom-to-top .3s;
+    }
+
+    &[direction='top'] {
+        animation: WebGUIPro-appear-top-to-bottom .3s;
+    }
+
+    &[direction='right'] {
+        animation: WebGUIPro-appear-left-to-right .3s;
+    }
+
+    &[direction='left'] {
+        animation: WebGUIPro-appear-right-to-left .3s;
+    }
+}
+
+.w-message {
+    background-color: #00000000;
+    border: none;
+
+    .message-box {
+        .message {
+            animation: WebGUIPro-scale-bounce .3s;
+            padding: 4px;
+            background-color: #fff;
+            border-radius: 8px;
+            border: solid 1.5px #c9c9c9dd;
+            margin: 6px;
+            box-shadow: 0 0 5px #3333332a;
+        }
+
+        background-color: #00000000;
+    }
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+}
+
+.w-window-flags {
+    .btn {
+        font-size: 18px;
+    }
+
+    .min:hover {
+        background-color: #e3e3e3dc;
+    }
+
+    .restore:hover {
+        background-color: #e3e3e3dc;
+    }
+
+    .close:hover {
+        color: #fff;
+        background-color: red;
+    }
+}
+
+.w-tab {
+    .bar {
+        background-color: #f9f9f9;
+
+        &>*[w-item] {
+            border: solid 1.5px #00000000;
+
+            .delete-btn {
+                border-radius: 4px;
+            }
+
+            .delete-btn:hover {
+                color: #fff;
+                background-color: #333;
+            }
+        }
+
+        &>*[w-item].select {
+            border-bottom: solid 1.5px #333;
+            background-color: #00000010;
+
+            .delete-btn.hide {
+                opacity: 1;
+            }
+        }
+
+        &>*[w-item][disabled] {
+            color: #6a6a6a;
+            filter: grayscale(100%);
+            background-color: #d2d2d2;
+
+            .delete-btn.hide {
+                opacity: 0.5;
+            }
+        }
+
+        &>*[w-item][disabled]:hover {
+            .delete-btn.hide {
+                opacity: 0.5;
+            }
+        }
+
+        &>*[w-item]:hover {
+            .delete-btn.hide {
+                opacity: 1;
+            }
+        }
+    }
+
+    .content {
+        border: solid 1.5px #333;
+    }
+}
+
+.w-breadcrumbs {
+    background-color: #fff;
+
+    *[w-item] {
+        cursor: pointer;
+        color: #333;
+    }
+
+    *[w-item].WClick {
+        color: #666;
+    }
+
+    *[w-item]:hover {
+        color: #666;
+    }
+}
+
+.w-contextmenu {
+    animation: WebGUIPro-opacity .2s;
+    padding: 4px;
+    background-color: #fff;
+    border-radius: 8px;
+    border: solid 1.5px #c9c9c9dd;
+    box-shadow: 0 0 30px 6px #3333332a;
+
+    .item {
+        padding: 4px;
+        background-color: #fff;
+        border-radius: 8px;
+
+        .key {
+            color: #666;
+        }
+    }
+
+    .split {
+        margin: 2px;
+        border-radius: 5px;
+        background-color: #ececec;
+    }
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+}
+
+.w-animation {
+    background-color: #00000010;
+    border: none;
+
+    &::backdrop {
+        background-color: #00000000;
+    }
+}
+
+.w-sash {
+    &:hover::after {
+        background-color: #00a1e6;
+    }
+}

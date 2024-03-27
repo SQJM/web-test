@@ -17,6 +17,7 @@
     outline: none;
     display: flex;
     flex-direction: column;
+    z-index: 3;
 
     .title {
         height: 30px;
@@ -26,20 +27,16 @@
         flex-direction: row;
         user-select: none;
         -webkit-user-select: none;
+        gap: 5px;
+        padding: 5px 0 5px 5px;
 
         .text {
             width: 100%;
-            padding: 2px;
-            padding-bottom: 5px;
-            padding-left: 5px;
         }
 
         .icon {
-            width: 25px;
-            height: 25px;
-            padding-top: 3px;
-            padding-bottom: 5px;
-            padding-left: 5px;
+            width: 20px;
+            height: 20px;
         }
     }
 
@@ -89,13 +86,13 @@
 
 /*=============================================================================================================================================================*/
 .w-tab {
-    *[w-bar] {
+    .bar {
         user-select: none;
         -webkit-user-select: none;
         display: flex;
         flex-direction: row;
 
-        *[w-item] {
+        &>*[w-item] {
             padding-left: 8px;
             padding-right: 8px;
             display: flex;
@@ -123,7 +120,7 @@
         }
     }
 
-    *[w-content] {
+    .content {
         *[w-view] {
             display: none;
         }
@@ -143,6 +140,7 @@
     min-height: 40px;
     outline: none;
     display: block;
+    z-index: 3;
 
     .content {
         width: 100%;
@@ -155,17 +153,17 @@
     display: flex;
     flex-direction: row;
 
-    *[w-item] {
+    &>*[w-item] {
         display: flex;
         flex-direction: row;
         align-items: center;
     }
 
-    *[w-item]::after {
+    &>*[w-item]::after {
         content: attr(w-split);
     }
 
-    *[w-item]:last-child::after {
+    &>*[w-item]:last-child::after {
         display: none;
     }
 }
@@ -179,6 +177,7 @@
     max-height: 100dvw;
     height: 100dvh;
     width: 100dvw;
+    z-index: 3;
 
     .content {
         width: 100%;
@@ -224,6 +223,7 @@
     left: 0;
     outline: none;
     display: block;
+    z-index: 3;
 
     .content {
         width: 100%;
@@ -244,6 +244,7 @@
     height: 100dvh;
     overflow: auto;
     outline: none;
+    z-index: 3;
 
     .message-box {
         display: flex;
@@ -322,6 +323,7 @@
     max-height: 100dvw;
     overflow: auto;
     outline: none;
+    z-index: 3;
 
     .item {
         min-width: 200px;
@@ -425,9 +427,127 @@
 }
 
 /*=============================================================================================================================================================*/
+.w-drop-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    .title {
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        transition: all .2s;
+        gap: 5px;
+
+        * {
+            pointer-events: none;
+        }
+
+        .icon {
+            width: 25px;
+            height: 25px;
+            display: none;
+        }
+
+        .sign {
+            font-size: 25px;
+            transition: all .2s;
+        }
+    }
+
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        height: 0;
+        overflow: hidden;
+        transition: all .1s;
+        opacity: .5;
+        gap: 3px;
+
+        &>*[w-item] {
+            width: 100%;
+        }
+    }
+
+    &[open]>.title>.sign {
+        transform: rotate(180deg);
+    }
+
+    &[open]>.content {
+        opacity: 1;
+        height: max-content;
+    }
+}
+
+/*=============================================================================================================================================================*/
+.w-select {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+
+    .title {
+        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        transition: all .2s;
+        gap: 5px;
+
+        * {
+            pointer-events: none;
+        }
+
+        .icon {
+            width: 25px;
+            height: 25px;
+            display: none;
+        }
+
+        .sign {
+            font-size: 25px;
+            transition: all .2s;
+        }
+    }
+
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        height: 0;
+        overflow: hidden;
+        transition: all .1s;
+        opacity: .5;
+        gap: 3px;
+        position: absolute;
+        top: 32px;
+
+        &>*[w-item] {
+            width: 100%;
+        }
+    }
+
+    &[open]>.title>.sign {
+        transform: rotate(180deg);
+    }
+
+    &[open]>.content {
+        opacity: 1;
+        height: max-content;
+    }
+}
+
+/*=============================================================================================================================================================*/
 
 w-test {
-    color: #00a1e6;
+    color: #f1f1f1;
     cursor: context-menu;
     cursor: pointer;
     animation: forwards reverse;
@@ -470,14 +590,6 @@ w-test {
 
 .w-resize-vertical {
     resize: vertical;
-}
-
-.w-pointer-events-none {
-    pointer-events: none;
-}
-
-.w-pointer-events-auto {
-    pointer-events: auto;
 }
 
 .w-column-reverse {

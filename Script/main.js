@@ -127,7 +127,6 @@ function test3() {
 
 window.onload = () => {
     render("./Lib/WebGUIPro");
-    WebGUIPro.setTheme();
     _INIT_PAGE_WebUtilPro_(() => {
         init();
     }, 300);

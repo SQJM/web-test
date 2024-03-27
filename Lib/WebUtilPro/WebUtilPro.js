@@ -2156,9 +2156,7 @@ const WebUtilPro = (function () {
        */
       HTMLElement.prototype.removeClass = function (classNames) {
         if (Array.isArray(classNames)) {
-          classNames.forEach(className => {
-            this.classList.remove(className);
-          });
+          this.classList.remove(...classNames);
         } else {
           this.classList.remove(classNames);
         }
@@ -2171,12 +2169,25 @@ const WebUtilPro = (function () {
        */
       HTMLElement.prototype.addClass = function (classNames) {
         if (Array.isArray(classNames)) {
-          classNames.forEach(className => {
-            this.classList.add(className);
-          });
+          this.classList.add(...classNames);
         } else {
           this.classList.add(classNames);
         }
+        return this;
+      }
+      /**
+       * 扩展 HTMLElement 原型的 toggleClass 方法,根据布尔值来添加或移除指定类名
+       * @param {string} className - 要操作的类名
+       * @param {boolean} addClass - 是否添加类名,true 表示添加,false 表示移除
+       * @return {HTMLElement} 返回当前 HTML 元素本身以便实现链式调用
+       */
+      HTMLElement.prototype.toggleClass = function (className, addClass) {
+        if (addClass) {
+          this.classList.add(className);
+        } else {
+          this.classList.remove(className);
+        }
+
         return this;
       }
       /**
