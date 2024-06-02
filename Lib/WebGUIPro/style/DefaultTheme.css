@@ -64,16 +64,36 @@
 
 .w-list {
     *[w-item]:hover {
-        background-color: #00000010;
+        background-color: #e6e6e6;
         cursor: context-menu;
     }
 
     *[w-item].select {
-        background-color: #00000030;
+        background-color: #d6d6d6;
     }
 
     *[w-item].drag-select {
         background-color: #00000020;
+    }
+}
+
+.w-button {
+    border-radius: 5px;
+    padding: 2px;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    border: solid 2px;
+    border-color: #000;
+    transition: all .3s;
+
+    &:hover {
+        background-color: #ffffff;
+        box-shadow: 0 0 2px #000000f0;
+    }
+
+    &:active {
+        border-color: #6d6d6d;
+        box-shadow: 0 0 2px #6c6c6cf0;
     }
 }
 
@@ -167,10 +187,6 @@
 }
 
 .w-window-flags {
-    .btn {
-        font-size: 18px;
-    }
-
     .min:hover {
         background-color: #e3e3e3dc;
     }
@@ -297,5 +313,22 @@
 .w-sash {
     &:hover::after {
         background-color: #00a1e6;
+    }
+}
+
+.w-app-bar {
+    padding: 0px;
+    background-color: #efefef;
+    box-shadow: 0 0 1px #000000a9;
+    transition: all .2s;
+    opacity: 0;
+
+    &[open] {
+        padding: 15px;
+        opacity: 1;
+    }
+
+    .more:active {
+        scale: .95;
     }
 }

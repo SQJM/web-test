@@ -52,6 +52,10 @@
     flex-direction: row;
     align-items: center;
 
+    .btn {
+        font-size: 18px;
+    }
+
     .material-icons {
         transition: all 0.2s;
         display: flex;
@@ -412,6 +416,7 @@
     align-items: center;
     justify-content: center;
     outline: none;
+    z-index: 9;
 
     &[window-model="fullscreen"] {
         position: fixed;
@@ -541,6 +546,63 @@
     &[open]>.content {
         opacity: 1;
         height: max-content;
+    }
+}
+
+/*=============================================================================================================================================================*/
+.w-app-bar {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    height: 0px;
+    width: 100%;
+
+    &[fixed] {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        z-index: 999;
+    }
+
+    &[open] {
+        height: 55px;
+    }
+
+    &[more="left"] {
+        flex-direction: row;
+    }
+
+    &[more="right"] {
+        flex-direction: row-reverse;
+    }
+
+    .more {
+        user-select: none;
+        font-size: 25px;
+        cursor: pointer;
+    }
+
+    .content {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+
+        .widget {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .title {
+            text-wrap: nowrap;
+            font-size: 20px;
+        }
+
+        .icon {
+            width: 35px;
+            height: 35px;
+        }
     }
 }
 

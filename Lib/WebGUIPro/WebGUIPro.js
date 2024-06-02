@@ -71,6 +71,72 @@ const WebGUIPro = (function () {
         },
     }
 
+    const ThemeProperty = {
+        // 背景相关  
+        bg: "background",
+        bgColor: "background-color",
+        bgImage: "background-image",
+        bgRepeat: "background-repeat",
+        bgPosition: "background-position",
+        bgSize: "background-size",
+        bgAttachment: "background-attachment",
+
+        // 文本和字体相关  
+        color: "color",
+        fontSize: "font-size",
+        fontFamily: "font-family",
+        fontWeight: "font-weight",
+        fontStyle: "font-style",
+        textAlign: "text-align",
+        textDecoration: "text-decoration",
+        textTransform: "text-transform",
+        textIndent: "text-indent",
+        lineHeight: "line-height",
+        letterSpacing: "letter-spacing",
+        wordSpacing: "word-spacing",
+        whiteSpace: "white-space",
+
+        // 边框相关  
+        border: "border",
+        borderRadius: "border-radius",
+        borderTop: "border-top",
+        borderRight: "border-right",
+        borderBottom: "border-bottom",
+        borderLeft: "border-left",
+        borderWidth: "border-width",
+        borderColor: "border-color",
+        borderStyle: "border-style",
+
+        // 盒子模型相关  
+        margin: "margin",
+        marginTop: "margin-top",
+        marginRight: "margin-right",
+        marginBottom: "margin-bottom",
+        marginLeft: "margin-left",
+        padding: "padding",
+        paddingTop: "padding-top",
+        paddingRight: "padding-right",
+        paddingBottom: "padding-bottom",
+        paddingLeft: "padding-left",
+        boxShadow: "box-shadow",
+        boxSizing: "box-sizing",
+
+        // 其他常用属性  
+        scale: "scale",
+        opacity: "opacity",
+        cursor: "cursor",
+        overflow: "overflow",
+        outline: "outline",
+        clear: "clear",
+        zIndex: "z-index",
+        transform: "transform",
+        filter: "filter",
+        transition: "transition",
+        animation: "animation",
+        listStyle: "list-style",
+        verticalAlign: "vertical-align"
+    };
+
     // 最大宽度
     const MAX_WIDTH = window.innerWidth;
     // 最大高度
@@ -221,8 +287,8 @@ const WebGUIPro = (function () {
             return WItem.SelectItem(this.#Item);
         }
 
-        setDraggable(is = true) {
-            return WItem.SetDraggable(this.#Item, is);
+        setDraggable(bool = true) {
+            return WItem.SetDraggable(this.#Item, bool);
         }
 
         isDisabled() {
@@ -299,9 +365,9 @@ const WebGUIPro = (function () {
         }
 
         // 设置拖拽
-        static SetDraggable(item, is = true) {
+        static SetDraggable(item, bool = true) {
             if (Judge.isHTMLElement(item)) {
-                item.attr("draggable", is)
+                item.attr("draggable", bool)
             } else {
                 throw UI_Error.ParameterMismatch(item);
             }
@@ -642,7 +708,7 @@ const WebGUIPro = (function () {
 
         // 设置内容
         setContent(view = "" || HTMLElement, isRender = true) {
-            if (WView.Is(view)) {
+            if (Judge.isHTMLElement(view)) {
                 this.ui.innerRemove();
                 view.addClass("content");
                 this.ui.appendChild(view);
@@ -683,7 +749,7 @@ const WebGUIPro = (function () {
 
         // 设置内容
         setContent(view = "" || HTMLElement, isRender = true) {
-            if (WView.Is(view)) {
+            if (Judge.isHTMLElement(view)) {
                 this.ui.innerRemove();
                 view.addClass("content");
                 this.ui.appendChild(view);
@@ -843,7 +909,7 @@ const WebGUIPro = (function () {
             }
 
             // 设置禁用项
-            ui.setDisabledItem = function (indexOrItem = 0 || HTMLElement, is = true) {
+            ui.setDisabledItem = function (indexOrItem = 0 || HTMLElement, bool = true) {
                 listUI.setDisabledItem(indexOrItem, content);
             }
         }
@@ -855,15 +921,15 @@ const WebGUIPro = (function () {
         #TriggerMode = WEvent.mousedown;
 
         // 设置项拖拽
-        setItemDraggable(indexOrItem = 0 || HTMLElement, is = true) {
+        setItemDraggable(indexOrItem = 0 || HTMLElement, bool = true) {
             const item = WItem.ReturnUiInItem(indexOrItem, this);
-            is ? item.attr("draggable", "true") : item.removeAttr("draggable", "false");
+            bool ? item.attr("draggable", "true") : item.removeAttr("draggable", "false");
         }
 
         // 设置项固定
-        setItemFixed(indexOrItem = 0 || HTMLElement, is = true) {
+        setItemFixed(indexOrItem = 0 || HTMLElement, bool = true) {
             const item = WItem.ReturnUiInItem(indexOrItem, this);
-            is ? item.addClass("fixed") : item.removeClass("fixed");
+            bool ? item.addClass("fixed") : item.removeClass("fixed");
         }
 
         // 设置选择项的触发方式
@@ -1009,9 +1075,9 @@ const WebGUIPro = (function () {
         }
 
         // 设置禁用项
-        setDisabledItem(indexOrItem = 0 || HTMLElement, is = true) {
+        setDisabledItem(indexOrItem = 0 || HTMLElement, bool = true) {
             const item = WItem.ReturnItem(indexOrItem, this);
-            is ? item.attr("disabled") : item.removeAttr("disabled");
+            bool ? item.attr("disabled") : item.removeAttr("disabled");
         }
 
         // 选择项
@@ -1717,9 +1783,9 @@ const WebGUIPro = (function () {
         }
 
         // 设置禁用项
-        setDisabledItem(indexOrItem = 0 || HTMLElement, is = true) {
+        setDisabledItem(indexOrItem = 0 || HTMLElement, bool = true) {
             const item = WItem.ReturnItem(indexOrItem, this);
-            is ? item.attr("disabled") : item.removeAttr("disabled");
+            bool ? item.attr("disabled") : item.removeAttr("disabled");
         }
 
         // 初始化
@@ -1934,13 +2000,13 @@ const WebGUIPro = (function () {
         }
 
         // 设置显示状态
-        setShowState(is = true) {
-            if (is) {
-                this.Callbacks.close();
-                this.ui.removeAttr("open");
-            } else {
+        setShowState(bool = true) {
+            if (bool) {
                 this.Callbacks.show();
                 this.ui.attr("open", "");
+            } else {
+                this.Callbacks.close();
+                this.ui.removeAttr("open");
             }
         }
 
@@ -1958,7 +2024,7 @@ const WebGUIPro = (function () {
 
             this.#TitleElement.w_Event = (event) => {
                 if (event.wEventName !== "click") return;
-                this.setShowState(this.ui.hasAttr("open"));
+                this.setShowState(!this.ui.hasAttr("open"));
             }
         }
 
@@ -2018,13 +2084,13 @@ const WebGUIPro = (function () {
         }
 
         // 设置显示状态
-        setShowState(is = true) {
-            if (is) {
-                this.Callbacks.close();
-                this.ui.removeAttr("open");
-            } else {
+        setShowState(bool = true) {
+            if (bool) {
                 this.Callbacks.show();
                 this.ui.attr("open", "");
+            } else {
+                this.Callbacks.close();
+                this.ui.removeAttr("open");
             }
         }
 
@@ -2038,7 +2104,7 @@ const WebGUIPro = (function () {
             this.#ContentElement.Class.Callbacks.selectItem = (item) => {
                 this.Callbacks.selectItem(item);
 
-                this.setShowState(true);
+                this.setShowState(false);
                 this.setTitleText(WItem.GetText(item));
 
                 return true;
@@ -2046,7 +2112,7 @@ const WebGUIPro = (function () {
 
             this.#TitleElement.w_Event = (event) => {
                 if (event.wEventName !== "click") return;
-                this.setShowState(this.ui.hasAttr("open"));
+                this.setShowState(!this.ui.hasAttr("open"));
             }
         }
 
@@ -2087,6 +2153,153 @@ const WebGUIPro = (function () {
         }
     }
 
+    class WWidget extends UI {
+
+        // 初始化
+        #init() {
+            this.initUIConfig();
+        }
+
+        constructor(Element = null) {
+            super({
+                delete: () => { },
+                contextmenu: () => { }
+            }, (map) => {
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else if (Judge.isNull(Element)) {
+                this.ui = createElement({
+                    classList: ["w-widget"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
+    class WAppBar extends UI {
+        #FixedState = false;
+
+        #BarMoreElement = createElement({ tagName: "i", classList: ["more", "material-icons"], text: "\ue5d2" });
+        #ContentIconElement = createElement({ tagName: "img", classList: ["icon"] });
+        #ContentTitleElement = createElement({ classList: ["title"] });
+        #ContentWidgetElement = createElement({ classList: ["widget"], callback: (widget) => { new WWidget(widget) } });
+        #ContentElement = createElement({ classList: ["content"], child: [this.#ContentIconElement, this.#ContentTitleElement, this.#ContentWidgetElement] });
+
+        // 获取 widget 元素
+        getWidget() {
+            return this.#ContentWidgetElement;
+        }
+
+        // 设置标题文本
+        setTitleText(text = "") {
+            this.#ContentTitleElement.textContent = text;
+        }
+
+        // 设置标题图标
+        setTitleIcon(src = "") {
+            if (src === "") {
+                this.#ContentIconElement.css("display", "none");
+            } else {
+                this.#ContentIconElement.attr("src", src);
+                this.#ContentIconElement.css("display", "block");
+            }
+        }
+
+        // 设置显示状态
+        setShowState(bool = true) {
+            if (bool) {
+                this.Callbacks.show();
+                this.ui.attr("open", "");
+            } else {
+                this.Callbacks.close();
+                this.ui.removeAttr("open");
+            }
+        }
+
+        // 设置固定
+        setFixed(bool = true) {
+            this.#FixedState = bool;
+        }
+
+        // 设置更多按钮回调
+        setMoreCallback(fn = () => { }) {
+            this.#BarMoreElement.onclick = fn;
+        }
+
+        // 设置更多按钮位置
+        setMorePlace(place = "left") {
+            if (place !== "left" && place !== "right") throw UI_Error.ParameterMismatch(place);
+            if (place === "left") {
+                this.ui.attr("more", "left");
+            } else {
+                this.ui.attr("more", "right");
+            }
+        }
+
+        #scrollDetection = (state = this.#FixedState) => {
+            if (state) {
+                MainWindow.css("margin-top", "55px");
+                this.ui.attr("fixed", "");
+                if (Body.scrollTop === 0) {
+                    MainWindow.css("margin-top", "0px");
+                    this.ui.removeAttr("fixed");
+                }
+            } else {
+                MainWindow.css("margin-top", "0px");
+                this.ui.removeAttr("fixed");
+            }
+        }
+
+        // 初始化
+        #init() {
+            this.initUIConfig(this, this.#ContentElement.Class);
+            this.setTitleText(this.ui.attr("app-title"));
+
+            Body.addEvent("scroll", this.#scrollDetection);
+        }
+
+        constructor(Element = null) {
+            super({
+                delete: () => { Body.removeEventr("scroll", this.#scrollDetection) },
+                show: () => { },
+                close: () => { }
+            }, (map) => {
+                if (map.has("icon")) this.setTitleIcon(map.get("icon"));
+                if (map.has("fixed")) this.setFixed();
+                if (map.has("more")) {
+                    this.setMoreCallback(window[map.get("more")]);
+                }
+                if (map.has("style")) {
+                    const m = _ConfigValueToMap(map.get("style"));
+                    if (m.has("more") && m.get("more") === "right") {
+                        this.setMorePlace("right");
+                    } else {
+                        this.setMorePlace();
+                    }
+                }
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+                this.ui.append(this.#BarMoreElement, this.#ContentElement);
+            } else if (Judge.isNull(Element)) {
+                this.ui = createElement({
+                    classList: ["w-app-bar"],
+                    child: [this.#BarMoreElement, this.#ContentElement]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
 
     class Dialog extends WidgetUI {
         #DraggableClass;
@@ -2113,6 +2326,11 @@ const WebGUIPro = (function () {
                 classList: ["bottom"],
             }),
         };
+
+        // 设置拖动区域
+        setDraggableLimit(limit) {
+            this.#DraggableClass.updateLimit(limit);
+        }
 
         // 设置标题图标
         setTitleIcon(src = "") {
@@ -2147,7 +2365,8 @@ const WebGUIPro = (function () {
         // 模态显示
         showModal(position = WPlace.Center.Center) {
             this.ui.removeAttr("open");
-            this.ui.showModal(position);
+            this.ui.showModal();
+            this.#initPosition(position);
         }
 
         // 设置坐标 x
@@ -2170,7 +2389,7 @@ const WebGUIPro = (function () {
 
         // 设置内容
         setContent(view = "" || HTMLElement, isRender = true) {
-            if (WView.Is(view)) {
+            if (Judge.isHTMLElement(view)) {
                 this.#View.content.innerRemove();
                 view.addClass("content");
                 this.#View.content.appendChild(view);
@@ -2404,6 +2623,11 @@ const WebGUIPro = (function () {
 
     class Floating extends WidgetUI {
         #DraggableClass;
+
+        // 设置拖动区域
+        setDraggableLimit(limit) {
+            this.#DraggableClass.updateLimit(limit);
+        }
 
         // 设置坐标 x
         setX(x) {
@@ -2796,74 +3020,10 @@ const WebGUIPro = (function () {
         ["tab", WTab],
         ["sash", WSash],
         ["drop-list", WDropList],
-        ["select", WSelect]
+        ["select", WSelect],
+        ["widget", WWidget],
+        ["app-bar", WAppBar]
     ];
-
-    const ThemeProperty = {
-        // 背景相关  
-        bg: "background",
-        bgColor: "background-color",
-        bgImage: "background-image",
-        bgRepeat: "background-repeat",
-        bgPosition: "background-position",
-        bgSize: "background-size",
-        bgAttachment: "background-attachment",
-
-        // 文本和字体相关  
-        color: "color",
-        fontSize: "font-size",
-        fontFamily: "font-family",
-        fontWeight: "font-weight",
-        fontStyle: "font-style",
-        textAlign: "text-align",
-        textDecoration: "text-decoration",
-        textTransform: "text-transform",
-        textIndent: "text-indent",
-        lineHeight: "line-height",
-        letterSpacing: "letter-spacing",
-        wordSpacing: "word-spacing",
-        whiteSpace: "white-space",
-
-        // 边框相关  
-        border: "border",
-        borderRadius: "border-radius",
-        borderTop: "border-top",
-        borderRight: "border-right",
-        borderBottom: "border-bottom",
-        borderLeft: "border-left",
-        borderWidth: "border-width",
-        borderColor: "border-color",
-        borderStyle: "border-style",
-
-        // 盒子模型相关  
-        margin: "margin",
-        marginTop: "margin-top",
-        marginRight: "margin-right",
-        marginBottom: "margin-bottom",
-        marginLeft: "margin-left",
-        padding: "padding",
-        paddingTop: "padding-top",
-        paddingRight: "padding-right",
-        paddingBottom: "padding-bottom",
-        paddingLeft: "padding-left",
-        boxShadow: "box-shadow",
-        boxSizing: "box-sizing",
-
-        // 其他常用属性  
-        scale: "scale",
-        opacity: "opacity",
-        cursor: "cursor",
-        overflow: "overflow",
-        outline: "outline",
-        clear: "clear",
-        zIndex: "z-index",
-        transform: "transform",
-        filter: "filter",
-        transition: "transition",
-        animation: "animation",
-        listStyle: "list-style",
-        verticalAlign: "vertical-align"
-    };
 
     function setTheme(Theme) {
         const property = elementStyle.getProperty(Theme);
@@ -2965,6 +3125,8 @@ const WebGUIPro = (function () {
         WSash,
         WDropList,
         WSelect,
+        WAppBar,
+        WWidget,
 
         Dialog,
         Activity,

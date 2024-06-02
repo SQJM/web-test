@@ -83,6 +83,7 @@ body {
     position: relative;
     opacity: 0;
     transition: opacity 0.3s;
+    z-index: 99;
 }
 
 /* 水平滚动条 */

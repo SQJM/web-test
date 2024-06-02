@@ -1524,12 +1524,14 @@ const WebUtilPro = (function () {
    * @param {Function} fn - 回调
    */
   function elementAnimation(element, an, fn = () => { }) {
-    element.style.animation = "";
-    element.style.animation = an;
-    element.addEvent("animationend", () => {
-      element.style.animation = "";
-      fn(element);
-    });
+    element.style.animation = "none";
+    setTimeout(() => {
+      element.style.animation = an;
+      element.onanimationend = () => {
+        element.style.animation = "none";
+        fn(element);
+      }
+    }, 20);
   }
 
   /**
@@ -1542,7 +1544,7 @@ const WebUtilPro = (function () {
       threshold: 0.5,
     });
 
-    element.style.animation = "";
+    element.style.animation = "none";
 
     function onIntersection(entries) {
       entries.forEach((entry) => {
@@ -1854,6 +1856,54 @@ const WebUtilPro = (function () {
   }
 
   /**
+   * ExternalControl - 用于与外部文档进行交互的控制器
+   */
+  class ExternalControl {
+    /**
+     * @param {string} path - 外部文档路径
+     */
+    constructor(path) {
+      this.doc = null;
+      this.iframe = document.createElement("iframe");
+      this.iframe.classList.add("ExternalControl");
+      this.iframe.style.display = "none";
+      this.iframe.src = path;
+
+      // 当 iframe 加载完成时,保存文档引用
+      this.iframe.onload = () => {
+        this.doc = this.iframe.contentDocument;
+      };
+
+      // 将 iframe 添加到文档中
+      document.body.appendChild(this.iframe);
+    }
+
+    // 删除
+    delete(){
+      this.iframe.remove();
+    }
+
+    /**
+     * 获取外部文档中的元素
+     * @param {string} str - 元素选择器
+     * @param {number} i - 索引(用于类选择器)
+     * @returns {HTMLElement} - 外部文档中匹配选择器的元素的克隆
+     */
+    get(str = "", i = null) {
+      const at = str.charAt(0);
+      const tag = str.substring(1, str.length);
+      let ele = null;
+      if (at === "#") {
+        ele = this.doc.getElementById(tag);
+      } else if (at === ".") {
+        const elements = this.doc.getElementsByClassName(tag);
+        ele = (i === null) ? elements : elements[i];
+      }
+      return ele.cloneNode(true);
+    }
+  }
+
+  /**
    * 动态引入 JavaScript 文件
    * @param {string} path - JavaScript 文件路径
    * @param {function} fn - 在加载完成后执行的回调函数
@@ -2008,6 +2058,7 @@ const WebUtilPro = (function () {
     strToinnerHTML,
     updateFavicon,
 
+    ExternalControl,
     AddDraggable,
     AudioPlayer,
     Judge,
@@ -2447,7 +2498,7 @@ const WebUtilPro = (function () {
     WLeaveDocument = true;
   });
 
-  document.addEvent('visibilitychange', function () {
+  document.addEvent("visibilitychange", function () {
     const pageVisibility = document.visibilityState;
     WPageVisibility = pageVisibility;
   });
