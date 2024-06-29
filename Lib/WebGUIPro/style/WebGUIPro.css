@@ -46,6 +46,27 @@
     text-decoration: none;
 }
 
+*[rotate90] {
+    transform: rotate(90deg);
+}
+
+*[rotate180] {
+    transform: rotate(180deg);
+}
+
+*[rotate270] {
+    transform: rotate(270deg);
+}
+
+*[rotate360] {
+    transform: rotate(360deg);
+}
+
+*[user-select] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
 @font-face {
     font-family: "MaterialIcons";
     src: url("../material-design-icons/fonts/MaterialIcons-Regular.ttf");

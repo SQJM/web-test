@@ -24,11 +24,13 @@ const WebGUIPro = (function () {
         WEvent,
         WInputType,
         AddDraggable,
+        LevelMessage,
         elementStyle,
         elementAnimation,
         Judge,
         TypeCast,
         generateUniqueId,
+        RangeCorrection,
         eventTrigger,
         includeCssFiles,
         uniquenessElement,
@@ -213,8 +215,8 @@ const WebGUIPro = (function () {
             min = {
                 text: "\ue15b"
             },
-            restore = {
-                text: "\ue3c1"
+            toggle = {
+                text: "\ue3e0"
             },
             close = {
                 text: "\ue14c"
@@ -222,8 +224,8 @@ const WebGUIPro = (function () {
         } = {}) {
             const minBtn = createElement(min);
             minBtn.addClass(["material-icons", "min", "btn"]);
-            const restoreBtn = createElement(restore);
-            restoreBtn.addClass(["material-icons", "restore", "btn"]);
+            const toggleBtn = createElement(toggle);
+            toggleBtn.addClass(["material-icons", "toggle", "restore", "btn"]);
             const closeBtn = createElement(close);
             closeBtn.addClass(["material-icons", "close", "btn"]);
             const group = createElement({
@@ -231,10 +233,21 @@ const WebGUIPro = (function () {
             });
 
             if ((flags & this.MinButtonHint) === 0) group.appendChild(minBtn);
-            if ((flags & this.RestoreButtonHint) === 0) group.appendChild(restoreBtn);
+            if ((flags & this.RestoreButtonHint) === 0) group.appendChild(toggleBtn);
             if ((flags & this.CloseButtonHint) === 0) group.appendChild(closeBtn);
 
             group.ClickEvent = function (event) { }
+            group.SetToggleMode = function (mode) {
+                if (mode === "maximize") {
+                    toggleBtn.removeClass("restore");
+                    toggleBtn.addClass("maximize");
+                    toggleBtn.innerText = "\ue3c1";
+                } else if (mode === "restore") {
+                    toggleBtn.addClass("restore");
+                    toggleBtn.removeClass("maximize");
+                    toggleBtn.innerText = "\ue3e0";
+                }
+            }
             group.addEvent("click", (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -243,10 +256,14 @@ const WebGUIPro = (function () {
                 const btn = getAppointParent(TargetElement, e => { return e.hasClass("btn") && e.parentNode === group });
                 if (btn.hasClass("min")) {
                     eventName = "min";
-                } else if (btn.hasClass("restore")) {
-                    eventName = "restore";
+                } else if (btn.hasClass("restore") && !btn.hasClass("maximize")) {
+                    eventName = "maximize";
+                    group.SetToggleMode("maximize");
                 } else if (btn.hasClass("close")) {
                     eventName = "close";
+                } else if (btn.hasClass("maximize")) {
+                    eventName = "restore";
+                    group.SetToggleMode("restore");
                 }
                 group.ClickEvent(eventName);
             });
@@ -528,7 +545,24 @@ const WebGUIPro = (function () {
     }
 
 
-    class UI {
+    class UIPrototype {
+        constructor() {
+            this.EventSlot = new Map;
+        }
+
+        addEventSlot(slot) {
+            const slotID = slot.Class.getSlotID();
+            this.EventSlot.set(slotID, slot);
+        }
+
+        removeEventSlot(slot) {
+            const slotID = slot.Class.getSlotID();
+            this.EventSlot.delete(slotID);
+        }
+    }
+
+
+    class UI extends UIPrototype {
         // 初始化 ui 配置
         initUIConfig() {
             const map = _ConfigToMap(this.ui.attr("w-ui-config"));
@@ -562,12 +596,13 @@ const WebGUIPro = (function () {
         }
 
         constructor(Callbacks, initUIConfigMap) {
+            super();
             this.Callbacks = Callbacks;
             this.UIConfigMap = initUIConfigMap;
         }
     }
 
-    class UI2 {
+    class UI2 extends UIPrototype {
         // 设置回调
         setCallback(type = "delete", fn = () => { }) {
             if (this.Callbacks.hasOwnProperty(type)) {
@@ -591,6 +626,7 @@ const WebGUIPro = (function () {
         }
 
         constructor(Callbacks) {
+            super();
             this.Callbacks = Callbacks;
         }
     }
@@ -816,8 +852,8 @@ const WebGUIPro = (function () {
     }
 
 
-    class ListContainer {
-        constructor(ui, listUI) {
+    class Link {
+        static ListContainer(ui, listUI) {
             // 选择项
             ui.selectItem = function (indexOrItem = 0 || HTMLElement) {
                 listUI.selectItem(indexOrItem);
@@ -839,28 +875,28 @@ const WebGUIPro = (function () {
             }
 
             // 返回项数量
-            ui.temSize = function () {
-                listUI.temSize();
+            ui.itemSize = function () {
+                return listUI.itemSize();
             }
 
             // 通过索引获取项
             ui.getItem = function (index = 0) {
-                listUI.getItem(index);
+                return listUI.getItem(index);
             }
 
             // 获取所有项
             ui.getItemAll = function () {
-                listUI.getItemAll();
+                return listUI.getItemAll();
             }
 
             // 获取选中的项
             ui.getSelectItem = function () {
-                listUI.getSelectItem();
+                return listUI.getSelectItem();
             }
 
             // 获取禁用的项
             ui.getDisabledItem = function () {
-                listUI.getDisabledItem();
+                return listUI.getDisabledItem();
             }
 
             // 清除选择项
@@ -916,9 +952,7 @@ const WebGUIPro = (function () {
     }
 
 
-
-    class WList extends UI {
-        #TriggerMode = WEvent.mousedown;
+    class ListContainer extends UI {
 
         // 设置项拖拽
         setItemDraggable(indexOrItem = 0 || HTMLElement, bool = true) {
@@ -935,7 +969,7 @@ const WebGUIPro = (function () {
         // 设置选择项的触发方式
         setSelectItemTriggerMode(mode = WEvent.mousedown || WEvent.click) {
             if (mode !== WEvent.mousedown || mode !== WEvent.click) throw UI_Error.ParameterMismatch(content);
-            this.#TriggerMode = mode;
+            this.TriggerMode = mode;
         }
 
         // 设置反转排序项
@@ -1091,10 +1125,12 @@ const WebGUIPro = (function () {
         #init() {
             this.initUIConfig();
 
+            this.TriggerMode = WEvent.mousedown;
+
             this.sortItem();
 
             this.ui.addEvent("mousedown", (event) => {
-                if (this.#TriggerMode !== WEvent.mousedown) return;
+                if (this.TriggerMode !== WEvent.mousedown) return;
 
                 const TargetElement = event.target;
                 const item = WItem.GetItem(TargetElement, this.ui);
@@ -1111,7 +1147,7 @@ const WebGUIPro = (function () {
                 this.Callbacks.contextMenu(event, item, TargetElement);
             });
             this.ui.addEvent("click", (event) => {
-                if (this.#TriggerMode !== WEvent.click) return;
+                if (this.TriggerMode !== WEvent.click) return;
 
                 const TargetElement = event.target;
                 const item = WItem.GetItem(TargetElement, this.ui);
@@ -1123,8 +1159,48 @@ const WebGUIPro = (function () {
             });
         }
 
+        constructor(Element = null, Callbacks, initUIConfigMap) {
+            super(Callbacks, initUIConfigMap);
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else if (Judge.isNull(Element)) {
+                this.ui = createElement({
+                    classList: ["w-list"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
+
+    class WSelectList extends ListContainer {
+        // 添加项
+        addItem(item = "" || HTMLElement, isSort = true) {
+            if (WItem.Is(item)) {
+                this.ui.appendChild(item);
+            } else if (Judge.isString(item)) {
+                this.ui.appendChild(createElement({
+                    attribute: [["w-item", ""]],
+                    text: item
+                }));
+            } else {
+                throw UI_Error.ParameterMismatch(item);
+            }
+
+            isSort && this.sortItem();
+            this.Callbacks.addItem(item);
+        }
+
+        // 初始化
+        #init() {
+        }
+
         constructor(Element = null) {
-            super({
+            super(Element, {
                 delete: () => { },
                 addItem: () => { },
                 removeItem: () => { },
@@ -1137,17 +1213,30 @@ const WebGUIPro = (function () {
                     this.setSortDirection(map.get("sortDirection"));
                 }
             });
-            if (IsUIInit(this, Element)) return false;
-            if (Judge.isHTMLElement(Element)) {
-                this.ui = Element;
-            } else if (Judge.isNull(Element)) {
-                this.ui = createElement({
-                    classList: ["w-list"]
-                });
-            } else {
-                throw UI_Error.ParameterMismatch(Element);
-            }
-            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
+    class WList extends ListContainer {
+
+        // 初始化
+        #init() {
+        }
+
+        constructor(Element = null) {
+            super(Element, {
+                delete: () => { },
+                addItem: () => { },
+                removeItem: () => { },
+                selectItem: () => { return true },
+                contextMenu: () => { },
+                swapItem: () => { }
+            }, (map) => {
+                if (map.has("reverse")) this.setReverse();
+                if (map.has("sortDirection")) {
+                    this.setSortDirection(map.get("sortDirection"));
+                }
+            });
             this.#init();
         }
     }
@@ -1522,8 +1611,8 @@ const WebGUIPro = (function () {
     }
 
     class WTab extends UI {
-        #BarElement = createElement({ classList: ["w-list", "bar"], callback: (bar) => { new WList(bar) } });
-        #ContentElement = createElement({ classList: ["w-stacked", "content"], callback: (content) => { new WStacked(content) } });
+        #BarElement = createElement({ classList: ["w-list", "bar", "w-son-ui"], callback: (bar) => { new WList(bar) } });
+        #ContentElement = createElement({ classList: ["w-stacked", "content", "w-son-ui"], callback: (content) => { new WStacked(content) } });
 
         // 渲染 bar
         #renderBar() {
@@ -1851,20 +1940,14 @@ const WebGUIPro = (function () {
 
         // 设置这
         setThis(element = HTMLElement) {
-            if (Judge.isHTMLElement(element)) {
-                this.#This = element;
-            } else {
-                throw UI_Error.ParameterMismatch(element);
-            }
+            if (!Judge.isHTMLElement(element)) throw UI_Error.ParameterMismatch(element);
+            this.#This = element;
         }
 
         // 设置那
         setThat(element = HTMLElement) {
-            if (Judge.isHTMLElement(element)) {
-                this.#That = element;
-            } else {
-                throw UI_Error.ParameterMismatch(element);
-            }
+            if (!Judge.isHTMLElement(element)) throw UI_Error.ParameterMismatch(element);
+            this.#That = element;
         }
 
         // 同时设置 这 那
@@ -1961,6 +2044,15 @@ const WebGUIPro = (function () {
                 move: () => true,
                 dblclick: () => { }
             }, (map) => {
+                if (map.has("limit")) {
+                    const m = _ConfigValueToMap(map.get("limit"));
+                    let min = 0, max = 0;
+                    if (m.has("min")) min = parseInt(m.get("min"));
+                    if (m.has("max")) max = parseInt(m.get("max"));
+                    this.setLimit(min, max);
+                }
+                if (map.has("this")) this.setThis($(map.get("this")));
+                if (map.has("that")) this.setThat($(map.get("that")));
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
@@ -1982,7 +2074,7 @@ const WebGUIPro = (function () {
         #TitleTextElement = createElement({ classList: ["text"] });
         #TitleSignElement = createElement({ tagName: "i", classList: ["sign", "material-icons"], text: "\ue313" });
         #TitleElement = createElement({ classList: ["title"], child: [this.#TitleIconElement, this.#TitleTextElement, this.#TitleSignElement] });
-        #ContentElement = createElement({ classList: ["w-list", "content"], callback: (content) => { new WList(content) } });
+        #ContentElement = createElement({ classList: ["w-list", "content", "w-son-ui"], callback: (content) => { new WList(content) } });
 
         // 设置标题文本
         setTitleText(text = "") {
@@ -2013,7 +2105,7 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig(this, this.#ContentElement.Class);
-            new ListContainer(this, this.#ContentElement.Class);
+            Link.ListContainer(this, this.#ContentElement.Class);
             this.#ContentElement.append(...this.ui.$(">[w-item]"));
             this.#ContentElement.Class.sortItem();
 
@@ -2060,7 +2152,7 @@ const WebGUIPro = (function () {
         #TitleTextElement = createElement({ classList: ["text"] });
         #TitleSignElement = createElement({ tagName: "i", classList: ["sign", "material-icons"], text: "\ue313" });
         #TitleElement = createElement({ classList: ["title"], child: [this.#TitleIconElement, this.#TitleTextElement, this.#TitleSignElement] });
-        #ContentElement = createElement({ classList: ["w-list", "content"], callback: (content) => { new WList(content) } });
+        #ContentElement = createElement({ classList: ["w-list", "content", "w-son-ui"], callback: (content) => { new WList(content) } });
 
         // 设置标题文本
         setTitleText(text = "") {
@@ -2097,7 +2189,7 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig(this, this.#ContentElement.Class);
-            new ListContainer(this, this.#ContentElement.Class);
+            Link.ListContainer(this, this.#ContentElement.Class);
             this.#ContentElement.append(...this.ui.$(">[w-item]"));
             this.#ContentElement.Class.sortItem();
 
@@ -2187,7 +2279,7 @@ const WebGUIPro = (function () {
         #BarMoreElement = createElement({ tagName: "i", classList: ["more", "material-icons"], text: "\ue5d2" });
         #ContentIconElement = createElement({ tagName: "img", classList: ["icon"] });
         #ContentTitleElement = createElement({ classList: ["title"] });
-        #ContentWidgetElement = createElement({ classList: ["widget"], callback: (widget) => { new WWidget(widget) } });
+        #ContentWidgetElement = createElement({ classList: ["widget", "w-son-ui"], callback: (widget) => { new WWidget(widget) } });
         #ContentElement = createElement({ classList: ["content"], child: [this.#ContentIconElement, this.#ContentTitleElement, this.#ContentWidgetElement] });
 
         // 获取 widget 元素
@@ -2300,6 +2392,46 @@ const WebGUIPro = (function () {
         }
     }
 
+    class WEventSlot extends UI {
+        // 初始化
+        #init() {
+            this.initUIConfig();
+
+            const InUI = this.ui.$("[w-ui]");
+            forEnd(InUI, ui => {
+                ui.Class.addEventSlot(this.ui);
+            });
+        }
+
+        // 获取槽 id
+        getSlotID() {
+            return this.ui.attr("slot-id");
+        }
+
+        // 设置槽 id
+        setSlotID(id = "") {
+            this.ui.attr("slot-id", id);
+        }
+
+        constructor(Element = null) {
+            super({
+                delete: () => { },
+            }, (map) => {
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else if (Judge.isNull(Element)) {
+                this.ui = createElement({
+                    classList: ["w-event-slot"]
+                });
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
 
     class Dialog extends WidgetUI {
         #DraggableClass;
@@ -2406,6 +2538,66 @@ const WebGUIPro = (function () {
             isRender && anewRender(this.#View.content);
         }
 
+        // 设置底部
+        setBottom(view = "" || HTMLElement, isRender = true) {
+            if (Judge.isHTMLElement(view)) {
+                this.#View.bottom.innerRemove();
+                view.addClass("bottom");
+                this.#View.bottom.appendChild(view);
+            } else if (Judge.isString(view)) {
+                this.#View.bottom.innerRemove();
+                this.#View.bottom.appendChild(createElement({
+                    attribute: [["w-view", ""]],
+                    classList: ["bottom"],
+                    text: view
+                }));
+            } else {
+                throw UI_Error.ParameterMismatch(view);
+            }
+            isRender && anewRender(this.#View.bottom);
+        }
+
+        // 设置信息
+        setMessage(msg) {
+            if (!Judge.isCustomType(LevelMessage, msg)) throw UI_Error.ParameterMismatch(msg);
+            this.#View.content.innerRemove();
+            this.#View.content.appendChild(createElement({
+                attribute: [["w-view", ""], ["message-level", msg.level()]],
+                classList: ["content"],
+                child: [
+                    createElement({
+                        classList: ["icon"],
+                        html: "&#xe8fd;"
+                    }),
+                    createElement({
+                        classList: ["text"],
+                        text: msg.message()
+                    })
+                ]
+            }));
+        }
+
+        // 设置回调按钮
+        setCallbackButton(callbackButton) {
+            if (!Judge.isArray(callbackButton)) throw UI_Error.ParameterMismatch(callbackButton);
+            this.#View.bottom.innerRemove();
+            forEnd(callbackButton, btn => {
+                const button = createElement({
+                    tagName: "button",
+                    classList: ["w-button", "callback-button"],
+                    text: btn[0]
+                });
+                this.#View.bottom.appendChild(button);
+                button.w_Event = (event) => {
+                    if (event.wEventName === "click") {
+                        if (btn[1](event)) {
+                            elementAnimation(this.ui, "WebGUIPro-opacity 0.1s reverse forwards", () => { this.delete() });
+                        }
+                    }
+                }
+            });
+        }
+
         // 初始化窗口出现位置
         #initPosition(position) {
             const wH = MainWindow.rect().height;
@@ -2439,9 +2631,12 @@ const WebGUIPro = (function () {
         #init({
             parent = MainWindow,
             eventID = generateUniqueId(),
+            limit = {},
             iconSrc = "",
             title = "",
             content = "",
+            bottom = "",
+            message = null,
             width = 300,
             height = 200,
             minWidth = 300,
@@ -2449,15 +2644,24 @@ const WebGUIPro = (function () {
             maxWidth = MAX_WIDTH,
             maxHeight = MAX_HEIGHT,
             windowOperation = WWindowOperation.default,
-            draggable = true
+            callbackButton = [],
+            draggable = true,
+            render = true
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"].w-dialog`));
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.#View.titleText.textContent = title;
             this.#View.title.append(this.#View.titleIcon, this.#View.titleText, this.#View.titleBtn);
 
-            this.setContent(content);
+            if (message === null) {
+                this.setContent(content);
+            } else {
+                this.setMessage(message);
+            }
+
+            this.setBottom(bottom);
+            this.setCallbackButton(callbackButton);
             this.setHeight(height);
             this.setWidth(width);
             this.seMinWidth(minWidth);
@@ -2477,8 +2681,12 @@ const WebGUIPro = (function () {
                 this.#DraggableClass = new AddDraggable({
                     element: this.#View.titleText,
                     effectElement: this.ui,
-                    fn: this.Callbacks.draggable
+                    fn: this.Callbacks.draggable,
                 });
+                this.setDraggableLimit(limit);
+            }
+            if (render) {
+                anewRender(this.ui);
             }
         }
 
@@ -2522,7 +2730,7 @@ const WebGUIPro = (function () {
             x = 0,
             y = 0
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"].w-activity`));
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(content);
@@ -2576,7 +2784,7 @@ const WebGUIPro = (function () {
             content = "",
             direction = WDirection.Bottom
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"].w-drawer`));
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(content);
@@ -2651,6 +2859,7 @@ const WebGUIPro = (function () {
         #init({
             parent = MainWindow,
             eventID = generateUniqueId(),
+            limit = {},
             content = "",
             width = 100,
             height = 100,
@@ -2679,6 +2888,7 @@ const WebGUIPro = (function () {
                     effectElement: this.ui,
                     fn: this.Callbacks.draggable
                 });
+                this.setDraggableLimit(limit);
             }
         }
 
@@ -2761,7 +2971,7 @@ const WebGUIPro = (function () {
                 this.Callbacks.remove(this.#View.message);
             }, time);
 
-            const existUI = $(`[event-id="${eventID}"].w-message`)[0];
+            const existUI = $(`[event-id="${eventID}"]`)[0];
             if (existUI) {
                 this.ui = existUI;
                 this.ui.$(">.message-box")[0].appendChild(this.#View.message);
@@ -2884,7 +3094,7 @@ const WebGUIPro = (function () {
             x = 0,
             y = 0
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"].w-contextMenu`));
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(items);
@@ -2943,7 +3153,7 @@ const WebGUIPro = (function () {
             eventID = generateUniqueId(),
             windowModel = WWindowModel.fullscreen
         } = {}) {
-            uniquenessElement($(`[event-id="${eventID}"].w-animation`));
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.setWindowModel(windowModel);
@@ -2974,6 +3184,7 @@ const WebGUIPro = (function () {
         }
     }
 
+
     /**
      * 根据指定的规则替换包含在元素内部的文本内容
      * 元素必须具有属性 `w-value-entry`
@@ -3000,7 +3211,8 @@ const WebGUIPro = (function () {
     // 判断 ui 是否初始化
     function IsUIInit(uiClass, ui) {
         if (ui.attr("winit") !== `${uiClass.constructor.name}`) {
-            ui.attr("winit", uiClass.constructor.name)
+            ui.attr("winit", uiClass.constructor.name);
+            !ui.hasClass("w-son-ui") && ui.attr("w-ui", "");
         } else return true;
     }
 
@@ -3022,7 +3234,9 @@ const WebGUIPro = (function () {
         ["drop-list", WDropList],
         ["select", WSelect],
         ["widget", WWidget],
-        ["app-bar", WAppBar]
+        ["app-bar", WAppBar],
+        ["event-slot", WEventSlot],
+        ["select-list", WSelectList]
     ];
 
     function setTheme(Theme) {
@@ -3113,6 +3327,8 @@ const WebGUIPro = (function () {
         WView,
         WindowFlags,
 
+        Link,
+
         ListContainer,
 
         WList,
@@ -3127,6 +3343,8 @@ const WebGUIPro = (function () {
         WSelect,
         WAppBar,
         WWidget,
+        WEventSlot,
+        WSelectList,
 
         Dialog,
         Activity,
@@ -3137,4 +3355,3 @@ const WebGUIPro = (function () {
         Animation
     };
 })();
-

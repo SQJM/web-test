@@ -63,16 +63,35 @@
 }
 
 .w-list {
-    *[w-item]:hover {
+    &>*[w-item]:hover {
         background-color: #e6e6e6;
         cursor: context-menu;
     }
 
-    *[w-item].select {
+    &>*[w-item].select {
         background-color: #d6d6d6;
     }
 
-    *[w-item].drag-select {
+    &>*[w-item].drag-select {
+        background-color: #00000020;
+    }
+}
+
+.w-select-list {
+    &>*[w-item] {
+        padding: 3px;
+    }
+
+    &>*[w-item]:hover {
+        background-color: #e6e6e6;
+        cursor: context-menu;
+    }
+
+    &>*[w-item].select {
+        background-color: #d6d6d6;
+    }
+
+    &>*[w-item].drag-select {
         background-color: #00000020;
     }
 }
@@ -83,17 +102,23 @@
     background-color: #f1f1f1;
     cursor: pointer;
     border: solid 2px;
-    border-color: #000;
+    border-color: #2d2d2d;
     transition: all .3s;
 
     &:hover {
         background-color: #ffffff;
-        box-shadow: 0 0 2px #000000f0;
+        box-shadow: 0 0 2px #000000dc;
     }
 
     &:active {
         border-color: #6d6d6d;
         box-shadow: 0 0 2px #6c6c6cf0;
+    }
+
+    &>.icon {
+        display: flex;
+        width: 100%;
+        pointer-events: none;
     }
 }
 
@@ -108,6 +133,10 @@
 
     .content {
         background-color: #ebebeb;
+    }
+
+    .bottom {
+        padding: 5px;
     }
 
     &::backdrop {
@@ -191,7 +220,7 @@
         background-color: #e3e3e3dc;
     }
 
-    .restore:hover {
+    .toggle:hover {
         background-color: #e3e3e3dc;
     }
 

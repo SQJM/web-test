@@ -145,7 +145,9 @@ const WebUtilPro = (function () {
     /** 安全 */
     safety: 'safety',
     /** 通过 */
-    ok: 'ok'
+    ok: 'ok',
+    /** 询问 */
+    inquiry: 'inquiry'
   };
 
   /**
@@ -249,6 +251,26 @@ const WebUtilPro = (function () {
     class: "class",
     function: "function"
   };
+
+  class LevelMessage {
+    #message;
+    #level;
+
+    constructor(msg = "", level = WEventLevel.ok) {
+      if (!Judge.isValueInObject(level, WEventLevel)) throw Code_Error.ParameterMismatch(level);
+      this.#message = msg;
+      this.#level = level;
+    }
+
+    message() {
+      return this.#message.toString();
+    }
+
+
+    level() {
+      return this.#level.toString();
+    }
+  }
 
   /**
    * 用于获取指定的 DOM 元素及相关方法的对象
@@ -358,6 +380,15 @@ const WebUtilPro = (function () {
      */
     static isFunction(...args) {
       return Judge.IS(it => (typeof it === 'function' || it instanceof Function), ...args);
+    }
+
+    /**
+     * 判断给定的参数是否为自定义类型(通过构造函数定义)
+     * @param {any} ...args - 要检查的参数
+     * @returns {boolean} 如果参数是通过构造函数定义的自定义类型,则返回 true;否则返回 false
+     */
+    static isCustomType(customType, ...args) {
+      return Judge.IS(it => (it instanceof customType), ...args);
     }
 
     /**
@@ -1879,7 +1910,7 @@ const WebUtilPro = (function () {
     }
 
     // 删除
-    delete(){
+    delete() {
       this.iframe.remove();
     }
 
@@ -1901,6 +1932,36 @@ const WebUtilPro = (function () {
       }
       return ele.cloneNode(true);
     }
+  }
+
+  /**
+   * 修正控件内部元素的位置,确保不超出控件的边界范围
+   *
+   * @param {number} x - 弹出框的 X 轴坐标
+   * @param {number} y - 弹出框的 Y 轴坐标
+   * @param {HTMLElement} element - 元素
+   * @param {HTMLElement} [Control=MainWindow] - 元素所在的父级控件,默认为 MainWindow
+   * @returns {number[]} 返回修正后的元素坐标 [y, x]
+   */
+  function RangeCorrection([x = null, y = null], element, Control = MainWindow) {
+    const { width: ControlW, height: ControlH } = Control.getClientRects();
+    const { width: elementW, height: elementH } = element.getClientRects();
+    let resultX = null, resultY = null;
+
+    // 修正 X 轴坐标
+    if (x && x + elementW >= ControlW) {
+      resultX = ControlW - elementW;
+    }
+
+    // 修正 Y 轴坐标
+    if (y && y + elementH >= ControlH) {
+      resultY = ControlH - elementH;
+    }
+
+    return {
+      x: resultX || 0,
+      y: resultY || 0
+    };
   }
 
   /**
@@ -1937,29 +1998,37 @@ const WebUtilPro = (function () {
 
   /**
    * 动态引入多 JavaScript 文件
-   *   每个数组项应包含以下结构：
+   *   每个数组项应包含以下结构:
    *     - {string} path - JavaScript 文件路径
    *     - {function} fn - 在加载完成后执行的回调函数
    *     - {boolean} endDelete - 是否在加载结束后删除 script 标签
    * @param {Array} arr - 包含多个 JavaScript 文件信息的数组
-   * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 false
+   * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 true
    * @param {function} endFn - 所有文件加载完成后的回调函数
    */
   function includeJsFiles(arr = [], isAsync = true, endFn = () => { }) {
-    if (isAsync) {
-      forEnd(arr, (e) => {
-        includeJsFile(e[0], e[1], e[2]);
-      });
-      endFn();
-    } else {
-      let count = 0;
-      forEnd(arr, (e) => {
-        includeJsFile(e[0], () => {
-          count++;
-          if (count === arr.length) endFn();
-        }, e[2]);
-      });
+    function loadNext(index) {
+      if (index >= arr.length) {
+        endFn();
+        return;
+      }
 
+      const [path, fn, endDelete] = arr[index];
+      includeJsFile(path, () => {
+        if (fn) fn();
+        if (endDelete) {
+          setTimeout(() => {
+            script.remove();
+          }, 5);
+        }
+        loadNext(index + 1);
+      });
+    }
+
+    if (isAsync) {
+      forEnd(arr, (e) => { includeJsFile(e[0], () => { }, e[2]); });
+    } else {
+      loadNext(0);
     }
   }
 
@@ -2057,6 +2126,7 @@ const WebUtilPro = (function () {
     setElementInAllPrototypeRecursive,
     strToinnerHTML,
     updateFavicon,
+    RangeCorrection,
 
     ExternalControl,
     AddDraggable,
@@ -2064,6 +2134,7 @@ const WebUtilPro = (function () {
     Judge,
     KeyObserve,
     TypeCast,
+    LevelMessage,
 
     Code_Error,
 
