@@ -94,11 +94,11 @@
     }
 
     .toggle {
-        transform: rotate(180deg);
+        transform: rotate(0deg);
     }
 
     .toggle.maximize {
-        transform: rotate(0deg);
+        transform: rotate(180deg);
     }
 
     .material-icons {
@@ -116,7 +116,6 @@
     .legend {
         user-select: none;
         -webkit-user-select: none;
-        margin-left: 5px;
     }
 }
 
@@ -293,7 +292,7 @@
     height: 100dvh;
     overflow: auto;
     outline: none;
-    z-index: 3;
+    z-index: 4;
 
     .message-box {
         display: flex;
@@ -305,6 +304,11 @@
         display: inline-flex;
         align-items: center;
         flex-direction: row;
+    }
+
+    .icon {
+        width: 25px;
+        height: 25px;
     }
 
     &::-webkit-scrollbar {
@@ -433,23 +437,21 @@
     }
 
     &[layout="horizontal"] {
-        height: 0px;
+        height: 4px;
         width: 100%;
 
         &::after {
-            cursor: row-resize;
-            height: 5px;
+            height: 4px;
             width: 100%;
         }
     }
 
     &[layout="vertical"] {
-        width: 0px;
+        width: 4px;
         height: 100%;
 
         &::after {
-            cursor: col-resize;
-            width: 5px;
+            width: 4px;
             height: 100%;
         }
     }
@@ -487,7 +489,7 @@
         user-select: none;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         flex-direction: row;
         transition: all .2s;
         gap: 5px;
@@ -546,7 +548,7 @@
         user-select: none;
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         flex-direction: row;
         transition: all .2s;
         gap: 5px;
@@ -645,10 +647,89 @@
         }
 
         .icon {
+            pointer-events: none;
             width: 35px;
             height: 35px;
         }
     }
+}
+
+/*=============================================================================================================================================================*/
+.w-paging {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 4px;
+
+    input {
+        width: 80px;
+    }
+
+    .up,
+    .down {
+        font-size: 25px;
+    }
+
+    .numbers {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+
+        *[w-item] {
+            padding: 0px 8px 0px 8px;
+        }
+    }
+
+    .skip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-direction: row;
+        overflow: hidden;
+
+        .input {
+            z-index: 2;
+        }
+
+        .button {
+            transition: all .2s;
+            position: absolute;
+            right: -50%;
+            opacity: 0;
+            z-index: 1;
+            scale: 0;
+        }
+
+        .button.show {
+            opacity: 1;
+            right: 0px;
+            scale: 1;
+            position: relative;
+        }
+    }
+}
+
+/*=============================================================================================================================================================*/
+w-single-use {
+    position: fixed;
+    opacity: 0;
+    pointer-events: none;
+    width: 0px;
+    height: 0px;
+    top: 0px;
+    left: 0px;
+}
+
+/*=============================================================================================================================================================*/
+w-code {
+    display: block;
+    position: fixed;
+    opacity: 0;
+    pointer-events: none;
+    width: 0px;
+    height: 0px;
+    top: 0px;
+    left: 0px;
 }
 
 /*=============================================================================================================================================================*/

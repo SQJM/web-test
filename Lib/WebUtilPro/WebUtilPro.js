@@ -20,17 +20,9 @@ var _CLOSE_PAGE_WebUtilPro_FN = () => { };
 // 点击的元素
 var WClickElement = null;
 var WClickElementCount = 1;
-// 经过的元素
-var WMouseElement = null;
-// 是否鼠标离开文档
-var WLeaveDocument = false;
 
 // 页面可见性
 var WPageVisibility = true;
-
-// 鼠标坐标
-var WMouseClientX = 0;
-var WMouseClientY = 0;
 
 // 样式 元素
 const _WebUtilPro__STYLE_ELEMENT = document.createElement("style");
@@ -603,6 +595,21 @@ const WebUtilPro = (function () {
       return null;
     }
 
+    /**  
+     * 将给定的值转换为布尔值
+     *   
+     * 如果传入的值是真值,则返回true;否则返回false
+     * 真值包括:任何非假值的值,如非空字符串,非零数字,非null对象等
+     * 假值包括:false,0,"",null,undefined,NaN
+     *   
+     * @param {any} value - 需要被转换为布尔值的任意值
+     * @returns {boolean} - 转换后的布尔值
+     */
+    static toBoolean(value) {
+      if (value) return true;
+      return false;
+    }
+
     /**
      * 将类型转换为合适的位置
      * @param {string|number} value - 要转换的值,可以是数字或字符串
@@ -927,7 +934,8 @@ const WebUtilPro = (function () {
       } else {
         this.setTransformXY(
           this.startTransformX + offsetX,
-          this.startTransformY + offsetY
+          this.startTransformY + offsetY,
+          event
         );
       }
     }
@@ -980,7 +988,7 @@ const WebUtilPro = (function () {
       };
     }
 
-    setTransformXY(x, y) {
+    setTransformXY(x, y, event) {
       const { top = -Infinity, bottom = Infinity, left = -Infinity, right = Infinity } = this.limit;
 
       if (y <= top) {
@@ -996,7 +1004,7 @@ const WebUtilPro = (function () {
         x = right;
       }
 
-      if (!this.fn("onMove", x, y)) return;
+      if (!this.fn("onMove", x, y, event)) return;
       if (this.effectElementLimitWindow) {
         const h = MainWindow.rect().height;
         const w = MainWindow.rect().width;
@@ -1914,13 +1922,24 @@ const WebUtilPro = (function () {
       this.iframe.remove();
     }
 
+    #DataSrcReplaceSrc(element) {
+      forEnd(element.$("[data-src]"), e => {
+        e.attr("src", e.attr("data-src"));
+        e.removeAttr("data-src");
+      });
+      if (element.attr("data-src")) {
+        element.attr("src", element.attr("data-src"));
+        element.removeAttr("data-src");
+      }
+    }
+
     /**
      * 获取外部文档中的元素
      * @param {string} str - 元素选择器
      * @param {number} i - 索引(用于类选择器)
      * @returns {HTMLElement} - 外部文档中匹配选择器的元素的克隆
      */
-    get(str = "", i = null) {
+    get(str = "", i = null, isReplace = true) {
       const at = str.charAt(0);
       const tag = str.substring(1, str.length);
       let ele = null;
@@ -1930,7 +1949,9 @@ const WebUtilPro = (function () {
         const elements = this.doc.getElementsByClassName(tag);
         ele = (i === null) ? elements : elements[i];
       }
-      return ele.cloneNode(true);
+      const newElement = ele.cloneNode(true);
+      isReplace && this.#DataSrcReplaceSrc(newElement);
+      return newElement;
     }
   }
 
@@ -1964,6 +1985,39 @@ const WebUtilPro = (function () {
     };
   }
 
+  /**  
+   * Algorithm 类提供了一系列静态方法的算法操作
+   */
+  class Algorithm {
+    static getNumbersBetween(start, end) {
+      let numbers = [];
+      // 确保start不大于end
+      let min = Math.min(start, end);
+      let max = Math.max(start, end);
+
+      // 使用循环从min遍历到max(包括max)
+      for (let i = min; i <= max; i++) {
+        numbers.push(i);
+      }
+      return numbers;
+    }
+
+    static getNumbersBetweenWithStep(start, end, step = 1) {
+      let numbers = [];
+      // 确保start不大于end,且step为正数  
+      if (start > end && step > 0) {
+        [start, end] = [end, start];
+        step = -step; // 如果start大于end,则反向遍历并改变步长  
+      }
+
+      // 使用循环从start遍历到end(包括end)
+      for (let i = start; (step > 0 && i <= end) || (step < 0 && i >= end); i += step) {
+        numbers.push(i);
+      }
+      return numbers;
+    }
+}
+
   /**
    * 动态引入 JavaScript 文件
    * @param {string} path - JavaScript 文件路径
@@ -1971,192 +2025,194 @@ const WebUtilPro = (function () {
    * @param {boolean} endDelete - 是否在加载结束后删除 script 标签
    */
   function includeJsFile(path = "", fn = () => { }, endDelete = false) {
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src = path;
+  const script = document.createElement("script");
+  script.type = "text/javascript";
+  script.src = path;
 
-    script.onload = function () {
-      fn(true, script);
+  script.onload = function () {
+    fn && fn(true, script);
+    if (endDelete) {
+      setTimeout(() => {
+        script.remove();
+      }, 5);
+    }
+  };
+
+  script.onerror = function () {
+    fn && fn(false, script);
+    if (endDelete) {
+      setTimeout(() => {
+        script.remove();
+      }, 5);
+    }
+  };
+
+  document.body.appendChild(script);
+}
+
+/**
+ * 动态引入多 JavaScript 文件
+ *   每个数组项应包含以下结构:
+ *     - {string} path - JavaScript 文件路径
+ *     - {function} fn - 在加载完成后执行的回调函数
+ *     - {boolean} endDelete - 是否在加载结束后删除 script 标签
+ * @param {Array} arr - 包含多个 JavaScript 文件信息的数组
+ * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 true
+ * @param {function} endFn - 所有文件加载完成后的回调函数
+ */
+function includeJsFiles(arr = [], isAsync = true, endFn = () => { }) {
+  function loadNext(index) {
+    if (index >= arr.length) {
+      endFn();
+      return;
+    }
+
+    const [path, fn, endDelete] = arr[index];
+    includeJsFile(path, () => {
+      if (fn) fn();
       if (endDelete) {
         setTimeout(() => {
           script.remove();
         }, 5);
       }
-    };
-
-    script.onerror = function () {
-      fn(false, script);
-      if (endDelete) {
-        setTimeout(() => {
-          script.remove();
-        }, 5);
-      }
-    };
-
-    document.body.appendChild(script);
-  }
-
-  /**
-   * 动态引入多 JavaScript 文件
-   *   每个数组项应包含以下结构:
-   *     - {string} path - JavaScript 文件路径
-   *     - {function} fn - 在加载完成后执行的回调函数
-   *     - {boolean} endDelete - 是否在加载结束后删除 script 标签
-   * @param {Array} arr - 包含多个 JavaScript 文件信息的数组
-   * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 true
-   * @param {function} endFn - 所有文件加载完成后的回调函数
-   */
-  function includeJsFiles(arr = [], isAsync = true, endFn = () => { }) {
-    function loadNext(index) {
-      if (index >= arr.length) {
-        endFn();
-        return;
-      }
-
-      const [path, fn, endDelete] = arr[index];
-      includeJsFile(path, () => {
-        if (fn) fn();
-        if (endDelete) {
-          setTimeout(() => {
-            script.remove();
-          }, 5);
-        }
-        loadNext(index + 1);
-      });
-    }
-
-    if (isAsync) {
-      forEnd(arr, (e) => { includeJsFile(e[0], () => { }, e[2]); });
-    } else {
-      loadNext(0);
-    }
-  }
-
-  /**
-   * 动态引入 CSS 文件
-   * @param {string} path - CSS 文件路径
-   * @param {function} fn - 在加载完成后执行的回调函数
-   */
-  function includeCssFile(path = "", fn = () => { }, parentNode = document.head) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = path;
-    if (fn) fn(link);
-    parentNode.appendChild(link);
-  }
-
-  /**
-   * 动态引入多个 CSS 文件
-   * @param {Array} arr - 包含 CSS 文件路径的数组
-   *   每个数组项应包含以下结构：
-   *     - {string} path - CSS 文件路径
-   *     - {function} fn - 在加载完成后执行的回调函数 (可选)
-   *     - {HTMLElement} parentNode - CSS 文件插入的父节点 (默认为 document.head) (可选)
-   */
-  function includeCssFiles(arr = []) {
-    forEnd(arr, (e) => {
-      includeCssFile(e[0], e[1], e[2]);
+      loadNext(index + 1);
     });
   }
 
-  /*
-   * 标准关闭页功能
-   */
-  function _CLOSE_PAGE_WebUtilPro_(callback = () => { }, time = 200, isOriginal = true) {
-    try {
-      setTimeout(() => {
-        _CLOSE_PAGE_WebUtilPro_FN();
-        MainWindow.style.opacity = "0";
-        callback();
-        if (isOriginal) window.close();
-      }, time);
-    } catch (error) {
-      throw error;
-    }
+  if (isAsync) {
+    forEnd(arr, (e) => { includeJsFile(e[0], () => { }, e[2]); });
+  } else {
+    loadNext(0);
   }
+}
 
-  /*
-   * 标准初始化页功能
-   */
-  function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
-    try {
-      MainWindow.style.display = "block";
-      setTimeout(() => {
-        _INIT_PAGE_WebUtilPro_FN();
-        MainWindow.style.opacity = "1";
-        callback();
-      }, time);
-    } catch (error) {
-      throw error;
-    }
+/**
+ * 动态引入 CSS 文件
+ * @param {string} path - CSS 文件路径
+ * @param {function} fn - 在加载完成后执行的回调函数
+ */
+function includeCssFile(path = "", fn = () => { }, parentNode = document.head) {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = path;
+  if (fn) fn(link);
+  parentNode.appendChild(link);
+}
+
+/**
+ * 动态引入多个 CSS 文件
+ * @param {Array} arr - 包含 CSS 文件路径的数组
+ *   每个数组项应包含以下结构：
+ *     - {string} path - CSS 文件路径
+ *     - {function} fn - 在加载完成后执行的回调函数 (可选)
+ *     - {HTMLElement} parentNode - CSS 文件插入的父节点 (默认为 document.head) (可选)
+ */
+function includeCssFiles(arr = []) {
+  forEnd(arr, (e) => {
+    includeCssFile(e[0], e[1], e[2]);
+  });
+}
+
+/*
+ * 标准关闭页功能
+ */
+function _CLOSE_PAGE_WebUtilPro_(callback = () => { }, time = 200, isOriginal = true) {
+  try {
+    setTimeout(() => {
+      _CLOSE_PAGE_WebUtilPro_FN();
+      MainWindow.style.opacity = "0";
+      callback();
+      if (isOriginal) window.close();
+    }, time);
+  } catch (error) {
+    throw error;
   }
+}
 
-  return {
-    $,
-    _CLOSE_PAGE_WebUtilPro_,
-    _INIT_PAGE_WebUtilPro_,
+/*
+ * 标准初始化页功能
+ */
+function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
+  try {
+    MainWindow.style.display = "block";
+    setTimeout(() => {
+      _INIT_PAGE_WebUtilPro_FN();
+      MainWindow.style.opacity = "1";
+      callback();
+    }, time);
+  } catch (error) {
+    throw error;
+  }
+}
 
-    calculateDaysDiff,
-    checkClassHasFunction,
-    cookieUtil,
-    createElement,
-    debounce,
-    easyStorageTool,
-    elementAppearAnimation,
-    elementAnimation,
-    elementStyle,
-    eventTrigger,
-    forEnd,
-    forIn,
-    forOf,
-    formValidation,
-    uniquenessElement,
-    formatDateString,
-    generateUniqueId,
-    getAppointParent,
-    getBrowserInfo,
-    getDeviceOrientation,
-    getRandomColor,
-    getNowFormatDate,
-    includeCssFile,
-    includeCssFiles,
-    includeJsFile,
-    includeJsFiles,
-    isValidFilename,
-    setElementInAllPrototypeRecursive,
-    strToinnerHTML,
-    updateFavicon,
-    RangeCorrection,
+return {
+  $,
+  _CLOSE_PAGE_WebUtilPro_,
+  _INIT_PAGE_WebUtilPro_,
 
-    ExternalControl,
-    AddDraggable,
-    AudioPlayer,
-    Judge,
-    KeyObserve,
-    TypeCast,
-    LevelMessage,
+  calculateDaysDiff,
+  checkClassHasFunction,
+  cookieUtil,
+  createElement,
+  debounce,
+  easyStorageTool,
+  elementAppearAnimation,
+  elementAnimation,
+  elementStyle,
+  eventTrigger,
+  forEnd,
+  forIn,
+  forOf,
+  formValidation,
+  uniquenessElement,
+  formatDateString,
+  generateUniqueId,
+  getAppointParent,
+  getBrowserInfo,
+  getDeviceOrientation,
+  getRandomColor,
+  getNowFormatDate,
+  includeCssFile,
+  includeCssFiles,
+  includeJsFile,
+  includeJsFiles,
+  isValidFilename,
+  setElementInAllPrototypeRecursive,
+  strToinnerHTML,
+  updateFavicon,
+  RangeCorrection,
 
-    Code_Error,
+  ExternalControl,
+  AddDraggable,
+  AudioPlayer,
+  Judge,
+  KeyObserve,
+  TypeCast,
+  LevelMessage,
+  Algorithm,
 
-    WDirection,
-    WLayoutDirection,
-    WSortord,
-    WEvent,
-    WEventLevel,
-    WInputType,
-    WVarType,
-    WPlace,
-    WWindowModel,
-    WWindowOperation,
-  };
+  Code_Error,
 
-})();
+  WDirection,
+  WLayoutDirection,
+  WSortord,
+  WEvent,
+  WEventLevel,
+  WInputType,
+  WVarType,
+  WPlace,
+  WWindowModel,
+  WWindowOperation,
+};
+
+}) ();
 
 (function () {
   const {
     $,
     Code_Error,
-    Judge
+    Judge,
+    debounce
   } = WebUtilPro;
 
   {
@@ -2402,9 +2458,9 @@ const WebUtilPro = (function () {
     event.wEventName = "mousedown";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-mousedown")) {
@@ -2433,9 +2489,9 @@ const WebUtilPro = (function () {
     event.wEventName = "click";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-click")) {
@@ -2449,30 +2505,13 @@ const WebUtilPro = (function () {
     event.wEventName = "input";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-input")) {
           window[TargetElement.getAttribute("w-callback-input")](event);
-        }
-      }
-    }
-  });
-  MainWindow.addEvent("mouseover", (event) => {
-    const TargetElement = event.target;
-    event.wEventName = "mouseover";
-    {
-      { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
-        WMouseElement = TargetElement;
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-mouseover")) {
-          window[TargetElement.getAttribute("w-callback-mouseover")](event);
         }
       }
     }
@@ -2482,10 +2521,9 @@ const WebUtilPro = (function () {
     event.wEventName = "dblclick";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
-        WMouseElement = TargetElement;
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-dblclick")) {
@@ -2499,9 +2537,9 @@ const WebUtilPro = (function () {
     event.wEventName = "copy";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-copy")) {
@@ -2515,9 +2553,9 @@ const WebUtilPro = (function () {
     event.wEventName = "paste";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-paste")) {
@@ -2531,9 +2569,9 @@ const WebUtilPro = (function () {
     event.wEventName = "cut";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-cut")) {
@@ -2547,9 +2585,9 @@ const WebUtilPro = (function () {
     event.wEventName = "contextmenu";
     {
       { // 触发事件
-        if (!TargetElement.w_Event)
-          TargetElement.w_Event = () => { }
-        TargetElement.w_Event(event);
+        if (!TargetElement.eventSlot)
+          TargetElement.eventSlot = () => { }
+        TargetElement.eventSlot(event);
       }
       { // 触发元素回调事件
         if (TargetElement.hasAttr("w-callback-contextmenu")) {
@@ -2559,11 +2597,6 @@ const WebUtilPro = (function () {
     }
   });
 
-  document.addEvent("mousemove", (event) => {
-    WMouseClientX = event.pageX;
-    WMouseClientY = event.pageY;
-    WLeaveDocument = false;
-  });
 
   document.addEvent("mouseleave", function () {
     WLeaveDocument = true;

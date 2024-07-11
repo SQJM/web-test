@@ -42,7 +42,7 @@ function init() {
             content: "hello world!"
         });
         a.showModal();
-        a.ui.w_Event = (event) => {
+        a.ui.eventSlot = (event) => {
             if (event.wEventName === "click") {
                 a.delete();
             }
