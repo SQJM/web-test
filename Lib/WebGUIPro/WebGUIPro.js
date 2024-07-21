@@ -141,9 +141,11 @@ const WebGUIPro = (function () {
     };
 
     // 最大宽度
-    const MAX_WIDTH = 1000000;
+    const MAX_WIDTH = 100000;
     // 最大高度
-    const MAX_HEIGHT = 1000000;
+    const MAX_HEIGHT = 100000;
+
+    const NONE = "none";
 
     // 删除子 ui
     function _DeleteSonUi(ui) {
@@ -656,7 +658,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class UI3 extends UI {
+    class InputUI extends UI {
         // 获取值
         getValue(returnType = WVarType.string) {
             if (returnType === WVarType.string) {
@@ -1072,8 +1074,9 @@ const WebGUIPro = (function () {
         }
 
         // 添加项
-        addItem(item = "" || HTMLElement, isSort = true) {
+        addItem(item = "" || HTMLElement, isSort = true, isClone = false) {
             if (WItem.Is(item)) {
+                isClone && (item = item.cloneNode(true));
                 this.ui.appendChild(item);
             } else if (Judge.isString(item) || Judge.isNumber(item)) {
                 this.ui.appendChild(createElement({
@@ -1089,10 +1092,10 @@ const WebGUIPro = (function () {
         }
 
         // 添加多项
-        addItems(items = [], isSort = true) {
+        addItems(items = [], isSort = true, isClone = false) {
             forEnd(items, (item, i) => {
                 try {
-                    this.addItem(item, false);
+                    this.addItem(item, false, isClone);
                 } catch (error) {
                     throw `${error} #Error index : ${i}`;
                 }
@@ -1155,6 +1158,22 @@ const WebGUIPro = (function () {
         selectItem(indexOrItem = 0 || HTMLElement) {
             const item = WItem.ReturnItem(indexOrItem, this);
             item && eventTrigger(item, this.TriggerMode);
+        }
+
+        // 选择所有项
+        selectItemAll() {
+            this.#MultipleMode && forEnd(this.getItemAll(), item => WItem.SelectItem(item));
+        }
+
+        // 反选所有项
+        InvertSelectItemAll() {
+            this.#MultipleMode && forEnd(this.getItemAll(), item => {
+                if (item.hasClass("select")) {
+                    WItem.RemoveSelectItem(item);
+                } else {
+                    WItem.SelectItem(item);
+                }
+            });
         }
 
         // 初始化
@@ -1284,10 +1303,10 @@ const WebGUIPro = (function () {
 
     class WSelectList extends ListContainer {
         // 添加项
-        addItem(item = "" || HTMLElement, isSort = true) {
+        addItem(item = "" || HTMLElement, isSort = true, isClone = false) {
             if (WItem.Is(item)) {
-                this.ui.appendChild(item);
-            } else if (Judge.isString(item)) {
+                this.ui.appendChild(item.cloneNode(isClone));
+            } else if (Judge.isString(item) || Judge.isNumber(item)) {
                 this.ui.appendChild(createElement({
                     attribute: [["w-item", ""]],
                     text: item
@@ -1352,6 +1371,10 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig();
+
+            this.ui.eventSlot = (event) => {
+                if (event.wEventName === "click") this.Callbacks.click(event);
+            }
         }
 
         constructor(Element = null) {
@@ -1382,6 +1405,7 @@ const WebGUIPro = (function () {
             this.ui.eventSlot = (event) => {
                 if (event.wEventName === "click") {
                     const bool = TypeCast.strToBoolean(this.ui.attr("w-bool")) || false;
+                    this.Callbacks.click(bool);
                     this.setBool(!bool);
                 }
             }
@@ -1398,7 +1422,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class WEdit extends UI3 {
+    class WEdit extends InputUI {
         // 设置类型
         setType(type = WInputType.text) {
             if (!Judge.isValueInObject(type, WInputType)) throw UI_Error.ParameterMismatch(type);
@@ -1455,7 +1479,7 @@ const WebGUIPro = (function () {
         }
     }
 
-    class WText extends UI3 {
+    class WText extends InputUI {
         // 设置大小调整模式
         setResizeMode(mode = WWindowOperation.both) {
             if (!Judge.isValueInObject(mode, WWindowOperation)) throw UI_Error.ParameterMismatch(mode);
@@ -2428,6 +2452,11 @@ const WebGUIPro = (function () {
             this.#BarMoreElement.onclick = fn;
         }
 
+        // 设置更多按钮可视性
+        setMoreVisuality(bool = true) {
+            if (bool) this.#BarMoreElement.css("display", "flex"); else this.#BarMoreElement.css("display", "none");
+        }
+
         // 设置更多按钮位置
         setMorePlace(place = "left") {
             if (place !== "left" && place !== "right") throw UI_Error.ParameterMismatch(place);
@@ -2470,6 +2499,9 @@ const WebGUIPro = (function () {
                 if (map.has("fixed")) this.setFixed();
                 if (map.has("more")) {
                     this.setMoreCallback(window[map.get("more")]);
+                }
+                if (map.has("no-more")) {
+                    this.setMoreVisuality(false);
                 }
                 if (map.has("style")) {
                     const m = _ConfigValueToMap(map.get("style"));
@@ -2829,16 +2861,15 @@ const WebGUIPro = (function () {
                 const button = createElement({
                     tagName: "button",
                     classList: ["w-button", "callback-button"],
-                    text: btn[0]
+                    text: btn[0],
+                    callback: btn => { new WButton(btn) }
                 });
                 this.#View.bottom.appendChild(button);
-                button.eventSlot = (event) => {
-                    if (event.wEventName === "click") {
-                        if (btn[1](event)) {
-                            elementAnimation(this.ui, "WebGUIPro-opacity 0.1s reverse forwards", () => { this.delete() });
-                        }
+                button.Class.setCallback("click", (event) => {
+                    if (btn[1](event)) {
+                        elementAnimation(this.ui, "WebGUIPro-opacity 0.1s reverse forwards", () => { this.delete() });
                     }
-                }
+                });
             });
         }
 
@@ -2960,6 +2991,49 @@ const WebGUIPro = (function () {
     }
 
     class Activity extends WidgetUI {
+        // 显示
+        show(position = WPlace.Center.Center) {
+            this.ui.removeAttr("open");
+            this.ui.show();
+            this.#initPosition(position);
+        }
+
+        // 模态显示
+        showModal(position = WPlace.Center.Center) {
+            this.ui.removeAttr("open");
+            this.ui.showModal();
+            this.#initPosition(position);
+        }
+
+        // 初始化窗口出现位置
+        #initPosition(position) {
+            const wH = MainWindow.rect().height;
+            const wW = MainWindow.rect().width;
+            const uH = this.ui.rect().height;
+            const uW = this.ui.rect().width;
+            if (position === 0) {
+                this.setXY(0, 0);
+            } else if (position === 1) {
+                this.setXY(0, wH / 2 - uH / 2);
+            } else if (position === 2) {
+                this.setXY(0, wH - uH);
+            } else if (position === 3) {
+                this.setXY(wW / 2 - uW / 2, 0);
+            } else if (position === 4) {
+                this.setXY(wW / 2 - uW / 2, wH / 2 - uH / 2);
+            } else if (position === 5) {
+                this.setXY(wW / 2 - uW / 2, wH - uH);
+            } else if (position === 6) {
+                this.setXY(wW - uW, 0);
+            } else if (position === 7) {
+                this.setXY(wW - uW, wH / 2 - uH / 2);
+            } else if (position === 8) {
+                this.setXY(wW - uW, wH - uH);
+            } else {
+                throw UI_Error.ParameterMismatch(position);
+            }
+        }
+
         // 初始化
         #init({
             parent = MainWindow,
@@ -2972,7 +3046,8 @@ const WebGUIPro = (function () {
             maxWidth = MAX_WIDTH,
             maxHeight = MAX_HEIGHT,
             x = 0,
-            y = 0
+            y = 0,
+            render = true
         } = {}) {
             uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
@@ -2989,6 +3064,10 @@ const WebGUIPro = (function () {
 
             this.ui.removeAttr("open");
             parent.appendFragment(this.ui);
+
+            if (render) {
+                anewRender(this.ui);
+            }
         }
 
         constructor(obj = {}) {
@@ -3641,9 +3720,13 @@ const WebGUIPro = (function () {
 
         ThemeProperty,
 
+        MAX_WIDTH,
+        MAX_HEIGHT,
+        NONE,
+
         UI,
         UI2,
-        UI3,
+        InputUI,
         WidgetUI,
         WidgetUI2,
         WidgetUI3,

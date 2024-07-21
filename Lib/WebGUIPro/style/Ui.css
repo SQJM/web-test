@@ -25,7 +25,7 @@
     outline: none;
     display: flex;
     flex-direction: column;
-    z-index: 3;
+    z-index: 5;
 
     .title {
         height: 30px;
@@ -184,8 +184,8 @@
     position: fixed;
     top: 0;
     left: 0;
-    min-width: 250px;
-    min-height: 40px;
+    height: min-content;
+    width: min-content;
     outline: none;
     display: block;
     z-index: 3;
@@ -636,12 +636,12 @@
         align-items: center;
 
         .widget {
-            width: 100%;
             display: flex;
             justify-content: flex-end;
         }
 
         .title {
+            width: 100%;
             text-wrap: nowrap;
             font-size: 20px;
         }

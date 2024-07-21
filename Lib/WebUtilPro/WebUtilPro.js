@@ -330,6 +330,30 @@ const WebUtilPro = (function () {
   class Judge {
 
     /**
+     * 验证名字是否符合常规
+     * @param {string} data 待验证数据
+     * @param {Set} invalidChars 存储违法字符的数组
+     * @returns {boolean} 验证结果
+     */
+    static isValidName(data, invalidChars) {
+      // 定义合法字符的正则表达式
+      const regex = /^[a-zA-Z0-9-_()!@#$%^&*=+?<>:;\[\]-\u4e00-\u9fa5]+$/;
+
+      if (regex.test(data)) {
+        return true;
+      } else {
+        if (Judge.isSet(invalidChars)) {
+          forEnd(data, (e) => {
+            if (!regex.test(e)) {
+              invalidChars.add(e);
+            }
+          });
+        }
+        return false;
+      }
+    }
+
+    /**
      * 判断给定的参数是否为字符串类型
      * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是字符串类型,则返回 true;否则返回 false
@@ -1269,30 +1293,6 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 验证文件夹名字或文件名是否合法
-   * @param {string} data 待验证数据
-   * @param {Set} invalidChars 存储违法字符的数组
-   * @returns {boolean} 验证结果
-   */
-  function isValidFilename(data, invalidChars) {
-    // 定义合法字符的正则表达式
-    const regex = /^[a-zA-Z0-9-_()\u4e00-\u9fa5]+$/;
-
-    if (regex.test(data)) {
-      return true;
-    } else {
-      if (Judge.isSet(invalidChars)) {
-        forEnd(data, (e) => {
-          if (!regex.test(e)) {
-            invalidChars.add(e);
-          }
-        });
-      }
-      return false;
-    }
-  }
-
-  /**
    * 更新网站 Favicon 的链接
    * @param {string} newIconUrl 新的 Favicon 的 URL
    */
@@ -2016,7 +2016,7 @@ const WebUtilPro = (function () {
       }
       return numbers;
     }
-}
+  }
 
   /**
    * 动态引入 JavaScript 文件
@@ -2025,187 +2025,186 @@ const WebUtilPro = (function () {
    * @param {boolean} endDelete - 是否在加载结束后删除 script 标签
    */
   function includeJsFile(path = "", fn = () => { }, endDelete = false) {
-  const script = document.createElement("script");
-  script.type = "text/javascript";
-  script.src = path;
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = path;
 
-  script.onload = function () {
-    fn && fn(true, script);
-    if (endDelete) {
-      setTimeout(() => {
-        script.remove();
-      }, 5);
-    }
-  };
-
-  script.onerror = function () {
-    fn && fn(false, script);
-    if (endDelete) {
-      setTimeout(() => {
-        script.remove();
-      }, 5);
-    }
-  };
-
-  document.body.appendChild(script);
-}
-
-/**
- * 动态引入多 JavaScript 文件
- *   每个数组项应包含以下结构:
- *     - {string} path - JavaScript 文件路径
- *     - {function} fn - 在加载完成后执行的回调函数
- *     - {boolean} endDelete - 是否在加载结束后删除 script 标签
- * @param {Array} arr - 包含多个 JavaScript 文件信息的数组
- * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 true
- * @param {function} endFn - 所有文件加载完成后的回调函数
- */
-function includeJsFiles(arr = [], isAsync = true, endFn = () => { }) {
-  function loadNext(index) {
-    if (index >= arr.length) {
-      endFn();
-      return;
-    }
-
-    const [path, fn, endDelete] = arr[index];
-    includeJsFile(path, () => {
-      if (fn) fn();
+    script.onload = function () {
+      fn && fn(true, script);
       if (endDelete) {
         setTimeout(() => {
           script.remove();
         }, 5);
       }
-      loadNext(index + 1);
+    };
+
+    script.onerror = function () {
+      fn && fn(false, script);
+      if (endDelete) {
+        setTimeout(() => {
+          script.remove();
+        }, 5);
+      }
+    };
+
+    document.body.appendChild(script);
+  }
+
+  /**
+   * 动态引入多 JavaScript 文件
+   *   每个数组项应包含以下结构:
+   *     - {string} path - JavaScript 文件路径
+   *     - {function} fn - 在加载完成后执行的回调函数
+   *     - {boolean} endDelete - 是否在加载结束后删除 script 标签
+   * @param {Array} arr - 包含多个 JavaScript 文件信息的数组
+   * @param {boolean} isAsync - 是否异步加载 JavaScript 文件,默认为 true
+   * @param {function} endFn - 所有文件加载完成后的回调函数
+   */
+  function includeJsFiles(arr = [], isAsync = true, endFn = () => { }) {
+    function loadNext(index) {
+      if (index >= arr.length) {
+        endFn();
+        return;
+      }
+
+      const [path, fn, endDelete] = arr[index];
+      includeJsFile(path, () => {
+        if (fn) fn();
+        if (endDelete) {
+          setTimeout(() => {
+            script.remove();
+          }, 5);
+        }
+        loadNext(index + 1);
+      });
+    }
+
+    if (isAsync) {
+      forEnd(arr, (e) => { includeJsFile(e[0], () => { }, e[2]); });
+    } else {
+      loadNext(0);
+    }
+  }
+
+  /**
+   * 动态引入 CSS 文件
+   * @param {string} path - CSS 文件路径
+   * @param {function} fn - 在加载完成后执行的回调函数
+   */
+  function includeCssFile(path = "", fn = () => { }, parentNode = document.head) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = path;
+    if (fn) fn(link);
+    parentNode.appendChild(link);
+  }
+
+  /**
+   * 动态引入多个 CSS 文件
+   * @param {Array} arr - 包含 CSS 文件路径的数组
+   *   每个数组项应包含以下结构：
+   *     - {string} path - CSS 文件路径
+   *     - {function} fn - 在加载完成后执行的回调函数 (可选)
+   *     - {HTMLElement} parentNode - CSS 文件插入的父节点 (默认为 document.head) (可选)
+   */
+  function includeCssFiles(arr = []) {
+    forEnd(arr, (e) => {
+      includeCssFile(e[0], e[1], e[2]);
     });
   }
 
-  if (isAsync) {
-    forEnd(arr, (e) => { includeJsFile(e[0], () => { }, e[2]); });
-  } else {
-    loadNext(0);
+  /*
+   * 标准关闭页功能
+   */
+  function _CLOSE_PAGE_WebUtilPro_(callback = () => { }, time = 200, isOriginal = true) {
+    try {
+      setTimeout(() => {
+        _CLOSE_PAGE_WebUtilPro_FN();
+        MainWindow.style.opacity = "0";
+        callback();
+        if (isOriginal) window.close();
+      }, time);
+    } catch (error) {
+      throw error;
+    }
   }
-}
 
-/**
- * 动态引入 CSS 文件
- * @param {string} path - CSS 文件路径
- * @param {function} fn - 在加载完成后执行的回调函数
- */
-function includeCssFile(path = "", fn = () => { }, parentNode = document.head) {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = path;
-  if (fn) fn(link);
-  parentNode.appendChild(link);
-}
-
-/**
- * 动态引入多个 CSS 文件
- * @param {Array} arr - 包含 CSS 文件路径的数组
- *   每个数组项应包含以下结构：
- *     - {string} path - CSS 文件路径
- *     - {function} fn - 在加载完成后执行的回调函数 (可选)
- *     - {HTMLElement} parentNode - CSS 文件插入的父节点 (默认为 document.head) (可选)
- */
-function includeCssFiles(arr = []) {
-  forEnd(arr, (e) => {
-    includeCssFile(e[0], e[1], e[2]);
-  });
-}
-
-/*
- * 标准关闭页功能
- */
-function _CLOSE_PAGE_WebUtilPro_(callback = () => { }, time = 200, isOriginal = true) {
-  try {
-    setTimeout(() => {
-      _CLOSE_PAGE_WebUtilPro_FN();
-      MainWindow.style.opacity = "0";
-      callback();
-      if (isOriginal) window.close();
-    }, time);
-  } catch (error) {
-    throw error;
+  /*
+   * 标准初始化页功能
+   */
+  function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
+    try {
+      MainWindow.style.display = "block";
+      setTimeout(() => {
+        _INIT_PAGE_WebUtilPro_FN();
+        MainWindow.style.opacity = "1";
+        callback();
+      }, time);
+    } catch (error) {
+      throw error;
+    }
   }
-}
 
-/*
- * 标准初始化页功能
- */
-function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
-  try {
-    MainWindow.style.display = "block";
-    setTimeout(() => {
-      _INIT_PAGE_WebUtilPro_FN();
-      MainWindow.style.opacity = "1";
-      callback();
-    }, time);
-  } catch (error) {
-    throw error;
-  }
-}
+  return {
+    $,
+    _CLOSE_PAGE_WebUtilPro_,
+    _INIT_PAGE_WebUtilPro_,
 
-return {
-  $,
-  _CLOSE_PAGE_WebUtilPro_,
-  _INIT_PAGE_WebUtilPro_,
+    calculateDaysDiff,
+    checkClassHasFunction,
+    cookieUtil,
+    createElement,
+    debounce,
+    easyStorageTool,
+    elementAppearAnimation,
+    elementAnimation,
+    elementStyle,
+    eventTrigger,
+    forEnd,
+    forIn,
+    forOf,
+    formValidation,
+    uniquenessElement,
+    formatDateString,
+    generateUniqueId,
+    getAppointParent,
+    getBrowserInfo,
+    getDeviceOrientation,
+    getRandomColor,
+    getNowFormatDate,
+    includeCssFile,
+    includeCssFiles,
+    includeJsFile,
+    includeJsFiles,
+    setElementInAllPrototypeRecursive,
+    strToinnerHTML,
+    updateFavicon,
+    RangeCorrection,
 
-  calculateDaysDiff,
-  checkClassHasFunction,
-  cookieUtil,
-  createElement,
-  debounce,
-  easyStorageTool,
-  elementAppearAnimation,
-  elementAnimation,
-  elementStyle,
-  eventTrigger,
-  forEnd,
-  forIn,
-  forOf,
-  formValidation,
-  uniquenessElement,
-  formatDateString,
-  generateUniqueId,
-  getAppointParent,
-  getBrowserInfo,
-  getDeviceOrientation,
-  getRandomColor,
-  getNowFormatDate,
-  includeCssFile,
-  includeCssFiles,
-  includeJsFile,
-  includeJsFiles,
-  isValidFilename,
-  setElementInAllPrototypeRecursive,
-  strToinnerHTML,
-  updateFavicon,
-  RangeCorrection,
+    ExternalControl,
+    AddDraggable,
+    AudioPlayer,
+    Judge,
+    KeyObserve,
+    TypeCast,
+    LevelMessage,
+    Algorithm,
 
-  ExternalControl,
-  AddDraggable,
-  AudioPlayer,
-  Judge,
-  KeyObserve,
-  TypeCast,
-  LevelMessage,
-  Algorithm,
+    Code_Error,
 
-  Code_Error,
+    WDirection,
+    WLayoutDirection,
+    WSortord,
+    WEvent,
+    WEventLevel,
+    WInputType,
+    WVarType,
+    WPlace,
+    WWindowModel,
+    WWindowOperation,
+  };
 
-  WDirection,
-  WLayoutDirection,
-  WSortord,
-  WEvent,
-  WEventLevel,
-  WInputType,
-  WVarType,
-  WPlace,
-  WWindowModel,
-  WWindowOperation,
-};
-
-}) ();
+})();
 
 (function () {
   const {
@@ -2433,6 +2432,7 @@ return {
       this.removeEventListener(eventName, fn, options);
       Judge.isFunction(okFn) && okFn();
     };
+
     /**
      * 为 HTMLElement 的原型添加 SoleID 属性,用于生成唯一标识符
      * @returns {string} - 生成的唯一标识符
@@ -2451,22 +2451,36 @@ return {
         return this._SoleID;
       }
     });
+
+    Object.defineProperty(HTMLElement.prototype, "wData", {
+      get: function () {
+        if (!this._wData) {
+          const str = this.attr("w-data");
+          if (Judge.isEmptyString(str)) return this._wData;
+
+          const regex = /\[([^\]]*)\]/g;
+          const matches = Array.from(str.matchAll(regex), m => m[1]);
+          
+        }
+        return this._wData;
+      }
+    });
+  }
+
+  const CustomizeEvents = (TargetElement, event) => {
+    if (!TargetElement.eventSlot) TargetElement.eventSlot = () => { };
+    TargetElement.eventSlot(event);
+
+    if (TargetElement.hasAttr(`w-callback-${event.wEventName}`)) {
+      window[TargetElement.getAttribute(`w-callback-${event.wEventName}`)](event);
+    }
   }
 
   MainWindow.addEvent("mousedown", (event) => {
     const TargetElement = event.target;
     event.wEventName = "mousedown";
+    CustomizeEvents(TargetElement, event);
     {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-mousedown")) {
-          window[TargetElement.getAttribute("w-callback-mousedown")](event);
-        }
-      }
       {
         if (WClickElement !== TargetElement) {
           WClickElementCount = 1;
@@ -2487,114 +2501,37 @@ return {
   MainWindow.addEvent("click", (event) => {
     const TargetElement = event.target;
     event.wEventName = "click";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-click")) {
-          window[TargetElement.getAttribute("w-callback-click")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("input", (event) => {
     const TargetElement = event.target;
     event.wEventName = "input";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-input")) {
-          window[TargetElement.getAttribute("w-callback-input")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("dblclick", (event) => {
     const TargetElement = event.target;
     event.wEventName = "dblclick";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-dblclick")) {
-          window[TargetElement.getAttribute("w-callback-dblclick")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("copy", function (event) {
     const TargetElement = event.target;
     event.wEventName = "copy";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-copy")) {
-          window[TargetElement.getAttribute("w-callback-copy")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("paste", function (event) {
     const TargetElement = event.target;
     event.wEventName = "paste";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-paste")) {
-          window[TargetElement.getAttribute("w-callback-paste")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("cut", function (event) {
     const TargetElement = event.target;
     event.wEventName = "cut";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-cut")) {
-          window[TargetElement.getAttribute("w-callback-cut")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
   MainWindow.addEvent("contextmenu", function (event) {
     const TargetElement = event.target;
     event.wEventName = "contextmenu";
-    {
-      { // 触发事件
-        if (!TargetElement.eventSlot)
-          TargetElement.eventSlot = () => { }
-        TargetElement.eventSlot(event);
-      }
-      { // 触发元素回调事件
-        if (TargetElement.hasAttr("w-callback-contextmenu")) {
-          window[TargetElement.getAttribute("w-callback-contextmenu")](event);
-        }
-      }
-    }
+    CustomizeEvents(TargetElement, event);
   });
 
 
