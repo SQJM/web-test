@@ -170,11 +170,48 @@ body {
     }
 }
 
+@keyframes WebGUIPro-scale-One-half {
+
+    0% {
+        scale: .5;
+    }
+
+    100% {
+        scale: 1;
+    }
+}
+
 @keyframes WebGUIPro-scale-opacity {
 
     0% {
         scale: 0;
         opacity: 0;
+    }
+
+    100% {
+        scale: 1;
+        opacity: 1;
+    }
+}
+
+@keyframes WebGUIPro-scale-opacity-One-half {
+
+    0% {
+        scale: .5;
+        opacity: .5;
+    }
+
+    100% {
+        scale: 1;
+        opacity: 1;
+    }
+}
+
+@keyframes WebGUIPro-scale-opacity-slightly {
+
+    0% {
+        scale: .9;
+        opacity: .5;
     }
 
     100% {

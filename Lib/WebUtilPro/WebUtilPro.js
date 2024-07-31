@@ -301,7 +301,7 @@ const WebUtilPro = (function () {
         const element = allElements.find(e => e.soleID === selector.substring(1));
         return element || null;
       } else {
-        return context.getElementsByTagName(selector);
+        return Array.from(context.getElementsByTagName(selector));
       }
     }
 
@@ -315,6 +315,11 @@ const WebUtilPro = (function () {
     }
 
     if (elementObject === null) return null;
+
+    if (Judge.isArray(elementObject)) {
+      elementObject.first = elementObject[0];
+      elementObject.last = elementObject[elementObject.length - 1];
+    }
 
     // 提供链式调用支持
     elementObject.$ = function (subSelector, operation = null) {
@@ -610,7 +615,7 @@ const WebUtilPro = (function () {
      * @param {string} str - 要转换的字符串,只能是 "true"`"false"`"1" 或 "0"
      * @returns {boolean|undefined} 如果字符串为 "true" 或 "1",则返回 true;如果字符串为 "false" 或 "0",则返回 false;否则返回 null
      */
-    static strToBoolean(str) {
+    static strToBool(str) {
       if (str === "true" || str === "1") {
         return true;
       } else if (str === "false" || str === "0") {
@@ -829,14 +834,14 @@ const WebUtilPro = (function () {
       effectElement = element,
       fn = () => { },
       limit = {},
-      effectElementLimitWindow = true,
+      freeMove = false,
       isKeyOperation = true,
     }) {
       this.element = element;
       this.effectElement = effectElement;
       this.fn = fn;
       this.limit = limit;
-      this.effectElementLimitWindow = effectElementLimitWindow;
+      this.freeMove = freeMove;
       this.isKeyOperation = isKeyOperation || true;
 
       this.startX = 0;
@@ -1029,11 +1034,11 @@ const WebUtilPro = (function () {
       }
 
       if (!this.fn("onMove", x, y, event)) return;
-      if (this.effectElementLimitWindow) {
-        const h = MainWindow.rect().height;
-        const w = MainWindow.rect().width;
-        if (y >= h) y = h - 50;
-        if (x >= w) x = w - 50;
+      if (!this.freeMove) {
+        const { width: w, height: h } = MainWindow.rect();
+        const { width: ew, height: eh } = this.effectElement.rect();
+        if (y + eh >= h) y = h - eh;
+        if (x + ew >= w) x = w - ew;
         if (y <= 0) y = 0;
         if (x <= 0) x = 0;
       }
@@ -1255,7 +1260,7 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 从给定的数组中删除重复的元素
+   * 从给定的数组中删除html元素
    * 
    * @param {Array} oldElement - 需要处理的数组
    */
@@ -1606,76 +1611,55 @@ const WebUtilPro = (function () {
    * @param {Boolean} isReversal 是否逆向遍历数组,默认为false
    * @returns {any} 匹配到的元素
    */
-  function forEnd(Arrs, condition, start = 0, skip = null, isReversal = false) {
-    if (!Arrs) return null;
+  function forEnd(Arrs, condition, { start = 0, skip = null, isReversal = false, autoReplace = false } = {}) {
+    if (!Judge.isArray(Arrs)) return null;
     let count = 0;
     if (skip === null) {
       skip = []; // 如果skip未提供,则设为空数组
     }
+
     if (isReversal) {
       if (Judge.isNumber(Arrs)) {
         for (let index = Arrs - 1; index >= start; index--) {
-          if (skip.includes(index)) {
-            continue;
-          }
+          if (skip.includes(index)) continue;
           count++;
           const value = condition(index, count);
-          if (value === true) {
-            return index;
-          } else if (value === "continue") {
-            continue;
-          } else if (value === "break") {
-            break;
-          }
+          if (value === true) return index;
+          else if (value === "continue") continue;
+          else if (value === "break") break;
         }
       } else {
         for (let index = Arrs.length - 1; index >= start; index--) {
-          if (skip.includes(index)) {
-            continue;
-          }
+          if (skip.includes(index)) continue;
           count++;
           const element = Arrs[index];
           const value = condition(element, index, count);
-          if (value === true) {
-            return element;
-          } else if (value === "continue") {
-            continue;
-          } else if (value === "break") {
-            break;
-          }
+          if (autoReplace) Arrs[index] = value;
+          if (value === true) return element;
+          else if (value === "continue") continue;
+          else if (value === "break") break;
         }
       }
     } else {
       if (Judge.isNumber(Arrs)) {
         for (let index = start; index < Arrs; index++) {
-          if (skip.includes(index)) {
-            continue;
-          }
+          if (skip.includes(index)) continue;
           count++;
           const value = condition(index, count);
-          if (value === true) {
-            return index;
-          } else if (value === "continue") {
-            continue;
-          } else if (value === "break") {
-            break;
-          }
+          if (value === true) return index;
+          else if (value === "continue") continue;
+          else if (value === "break") break;
         }
       } else {
         for (let index = start; index < Arrs.length; index++) {
-          if (skip.includes(index)) {
-            continue;
-          }
+          if (skip.includes(index)) continue;
           count++;
           const element = Arrs[index];
           const value = condition(element, index, count);
-          if (value === true) {
-            return element;
-          } else if (value === "continue") {
-            continue;
-          } else if (value === "break") {
-            break;
-          }
+          if (autoReplace) Arrs[index] = value;
+          if (value === true) return element;
+          else if (value === "continue") continue;
+          else if (value === "break") break;
         }
       }
     }
@@ -1690,7 +1674,7 @@ const WebUtilPro = (function () {
    * @param {Array<number>} [skip=[]] - 跳过的索引数组
    * @returns {*} 如果条件函数返回 true,则返回符合条件的属性值:否则返回 null
    */
-  function forIn(inputObj, condition, start = 0, skip = []) {
+  function forIn(inputObj, condition, { start = 0, skip = [] } = {}) {
     if (!inputObj) return null;
     let count = 0;
     let index = 0;
@@ -1722,7 +1706,7 @@ const WebUtilPro = (function () {
    * @param {Array<number>} [skip=[]] - 跳过的索引数组
    * @returns {*} 如果条件函数返回 true,则返回符合条件的属性值:否则返回 null
    */
-  function forOf(inputObj, condition, start = 0, skip = []) {
+  function forOf(inputObj, condition, { start = 0, skip = [] } = {}) {
     if (!inputObj) return null;
     let count = 0;
     let index = 0;
@@ -1834,7 +1818,7 @@ const WebUtilPro = (function () {
      * @param {object} style - 包含样式属性的对象
      */
     function set(className, style) {
-      let element = _WebUtilPro__STYLE_ELEMENT.$(`.${className}`)[0];
+      let element = _WebUtilPro__STYLE_ELEMENT.$(`.${className}`).first;
       if (!element) element = createElement({ tagName: "style", classList: [className] });
 
       let text = "";
@@ -1852,7 +1836,7 @@ const WebUtilPro = (function () {
      * @param {object} style - 包含要追加的样式属性的对象
      */
     function add(className, style) {
-      let element = _WebUtilPro__STYLE_ELEMENT.$(`.${className}`)[0];
+      let element = _WebUtilPro__STYLE_ELEMENT.$(`.${className}`).first;
       if (!element) return false;
 
       let text = "";
@@ -1868,7 +1852,7 @@ const WebUtilPro = (function () {
      * @param {string} className - 要移除样式的类名
      */
     function remove(className) {
-      _WebUtilPro__STYLE_ELEMENT.$(`.${className}`)[0].remove();
+      _WebUtilPro__STYLE_ELEMENT.$(`.${className}`).first.remove();
     }
 
     return {
@@ -1886,12 +1870,16 @@ const WebUtilPro = (function () {
    * @param {number} [btn=0] 鼠标按钮值,默认为 0
    */
   function eventTrigger(element, eventName, btn = 0) {
-    element.dispatchEvent(new MouseEvent(eventName, {
-      bubbles: true,     // 事件是否冒泡
-      cancelable: true,  // 是否可以被取消
-      view: window,      // 与事件相关的抽象视图
-      button: btn        // 按下哪个鼠标键
-    }));
+    if (element) {
+      element.dispatchEvent(new MouseEvent(eventName, {
+        bubbles: true,     // 事件是否冒泡
+        cancelable: true,  // 是否可以被取消
+        view: window,      // 与事件相关的抽象视图
+        button: btn        // 按下哪个鼠标键
+      }));
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -1922,15 +1910,20 @@ const WebUtilPro = (function () {
       this.iframe.remove();
     }
 
-    #DataSrcReplaceSrc(element) {
-      forEnd(element.$("[data-src]"), e => {
-        e.attr("src", e.attr("data-src"));
-        e.removeAttr("data-src");
-      });
-      if (element.attr("data-src")) {
-        element.attr("src", element.attr("data-src"));
-        element.removeAttr("data-src");
+    static DataSrcReplaceSrc(element) {
+      const fn = (e) => {
+        if (e.attr("data-src")) {
+          e.attr("src", e.attr("data-src"));
+          e.removeAttr("data-src");
+        }
       }
+
+      forEnd(element.$("[data-src]"), e => fn(e));
+      fn(element);
+    }
+
+    dataSrcReplaceSrc(element) {
+      ExternalControl.DataSrcReplaceSrc(element);
     }
 
     /**
@@ -1939,7 +1932,7 @@ const WebUtilPro = (function () {
      * @param {number} i - 索引(用于类选择器)
      * @returns {HTMLElement} - 外部文档中匹配选择器的元素的克隆
      */
-    get(str = "", i = null, isReplace = true) {
+    get(str = "", i = null) {
       const at = str.charAt(0);
       const tag = str.substring(1, str.length);
       let ele = null;
@@ -1950,7 +1943,6 @@ const WebUtilPro = (function () {
         ele = (i === null) ? elements : elements[i];
       }
       const newElement = ele.cloneNode(true);
-      isReplace && this.#DataSrcReplaceSrc(newElement);
       return newElement;
     }
   }
@@ -2211,7 +2203,7 @@ const WebUtilPro = (function () {
     $,
     Code_Error,
     Judge,
-    debounce
+    forEnd,
   } = WebUtilPro;
 
   {
@@ -2383,9 +2375,7 @@ const WebUtilPro = (function () {
       HTMLElement.prototype.appendFragment = function (element) {
         const fragment = document.createDocumentFragment();
         if (Array.isArray(element)) {
-          element.forEach(e => {
-            fragment.appendChild(e);
-          });
+          fragment.append(...element);
         } else {
           fragment.appendChild(element);
         }
@@ -2452,20 +2442,28 @@ const WebUtilPro = (function () {
       }
     });
 
-    Object.defineProperty(HTMLElement.prototype, "wData", {
+    Object.defineProperty(HTMLElement.prototype, "wInitData", {
       get: function () {
-        if (!this._wData) {
-          const str = this.attr("w-data");
-          if (Judge.isEmptyString(str)) return this._wData;
+        if (!this._wInitData) {
+          this._wInitData = {};
+          const str = this.attr("w-init-data");
+          if (Judge.isEmptyString(this.attr("w-init-data"))) return this._wInitData;
 
           const regex = /\[([^\]]*)\]/g;
           const matches = Array.from(str.matchAll(regex), m => m[1]);
-          
+          forEnd(matches, item => {
+            const arr = item.split(":");
+            this._wInitData[arr[0]] = arr[1];
+          })
+          this.removeAttr("w-init-data");
         }
-        return this._wData;
+        return this._wInitData;
       }
     });
   }
+  // ==================== // 
+  forEnd($("[w-init-data]"), item => item.wInitData); // 初始化所有 w-init-data
+  // ==================== // 
 
   const CustomizeEvents = (TargetElement, event) => {
     if (!TargetElement.eventSlot) TargetElement.eventSlot = () => { };

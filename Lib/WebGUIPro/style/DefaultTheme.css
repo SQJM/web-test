@@ -114,6 +114,10 @@
     border-color: #2d2d2d;
     transition: all .3s;
 
+    &:disabled {
+        cursor: no-drop;
+    }
+
     &:hover {
         background-color: #ffffff;
         box-shadow: 0 0 2px #000000dc;
@@ -135,10 +139,11 @@
 .w-dialog {
     border-radius: 8px;
     border: solid 1.5px #c9c9c9dd;
-    box-shadow: 0 0 30px 6px #3333332a;
+    box-shadow: 0 0 30px 6px #0000000d;
 
     .title {
         background-color: #f3f3f3;
+        border-bottom: solid 1.5px #00000010;
     }
 
     .content {
@@ -147,6 +152,10 @@
 
     .bottom {
         padding: 5px;
+
+        &:empty {
+            padding: 0px;
+        }
     }
 
     &::backdrop {
@@ -469,6 +478,17 @@
     box-shadow: 0 0 5px #33333315;
 }
 
+.w-tree-list {
+    &>*[w-item] {
+        &:hover {
+            background-color: #0000000d;
+        }
+
+        &.select {
+            background-color: #0000001b;
+        }
+    }
+}
 
 .w-theme {
     padding: 2px 4px 2px 4px;
