@@ -4,6 +4,10 @@
     align-items: stretch;
     flex-direction: column;
     overflow: auto;
+
+    &>*[w-item].hide {
+        display: none !important;
+    }
 }
 
 /*=============================================================================================================================================================*/
@@ -27,7 +31,7 @@
     flex-direction: column;
     z-index: 5;
 
-    .title {
+    &>.title {
         height: 30px;
         display: flex;
         justify-content: space-between;
@@ -39,8 +43,12 @@
         padding: 5px 0 5px 5px;
 
         .text {
+            text-align: left;
+            white-space: nowrap;
+            text-overflow: ellipsis;
             width: 100%;
             font-size: 15px;
+            overflow: hidden;
         }
 
         .icon {
@@ -49,33 +57,43 @@
         }
     }
 
-    .content {
+    &>.content {
         width: 100%;
         height: 100%;
         overflow: auto;
 
-        &[message-level] {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        &>.content {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
 
-        &[message-level]>.icon {
-            font-size: 75px;
-            font-family: "MaterialIcons", sans-serif;
-        }
+            &[message-level] {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
 
-        &[message-level]>.text {
-            text-shadow: 0 0 1px #0000001d;
-        }
+            &[message-level]>.icon {
+                font-size: 75px;
+                font-family: "MaterialIcons", sans-serif;
+            }
 
-        &[message-level="inquiry"]>.icon {
-            color: #00ccff;
+            &[message-level]>.text {
+                text-shadow: 0 0 1px #0000001d;
+            }
+
+            &[message-level="inquiry"]>.icon {
+                color: #00ccff;
+            }
+
+            &[message-level="warning"]>.icon {
+                color: #ffe600;
+            }
         }
     }
 
-    .bottom {
+    &>.bottom {
         display: flex;
         align-items: center;
         justify-content: flex-end;
@@ -96,19 +114,19 @@
     flex-direction: row;
     align-items: center;
 
-    .btn {
+    &>.btn {
         font-size: 18px;
     }
 
-    .toggle {
+    &>.toggle {
         transform: rotate(0deg);
     }
 
-    .toggle.maximize {
+    &>.toggle.maximize {
         transform: rotate(180deg);
     }
 
-    .material-icons {
+    &>.material-icons {
         transition: background-color 0.2s;
         display: flex;
         align-items: center;
@@ -120,7 +138,7 @@
 
 /*=============================================================================================================================================================*/
 .w-fieldset {
-    .legend {
+    &>.legend {
         user-select: none;
         -webkit-user-select: none;
     }
@@ -132,7 +150,7 @@
         display: none;
     }
 
-    .select {
+    &>.select {
         width: 100%;
         height: 100%;
         display: block;
@@ -141,7 +159,7 @@
 
 /*=============================================================================================================================================================*/
 .w-tab {
-    .bar {
+    &>.bar {
         user-select: none;
         -webkit-user-select: none;
         display: flex;
@@ -153,34 +171,34 @@
             display: flex;
             align-items: center;
 
-            .icon {
+            &>.icon {
                 width: 18px;
                 height: 18px;
             }
 
-            .text {
+            &>.text {
                 padding-left: 4px;
                 padding-right: 4px;
             }
 
-            .delete-btn {
+            &>.delete-btn {
                 width: 18px;
                 height: 18px;
                 transition: all 0.1s;
             }
 
-            .delete-btn.hide {
+            &>.delete-btn.hide {
                 opacity: 0;
             }
         }
     }
 
-    .content {
-        *[w-view] {
+    &>.content {
+        &>*[w-view] {
             display: none;
         }
 
-        *[w-view].select {
+        &>*[w-view].select {
             display: block;
         }
     }
@@ -197,7 +215,7 @@
     display: block;
     z-index: 3;
 
-    .content {
+    &>.content {
         width: 100%;
         height: 100%;
     }
@@ -234,7 +252,7 @@
     width: 100dvw;
     z-index: 3;
 
-    .content {
+    &>.content {
         width: 100%;
         height: 100%;
     }
@@ -280,14 +298,14 @@
     display: block;
     z-index: 3;
 
-    .content {
+    &>.content {
         width: 100%;
         height: 100%;
     }
 }
 
 /*=============================================================================================================================================================*/
-.w-message[open] {
+.w-message {
     pointer-events: none;
     position: fixed;
     top: 0;
@@ -301,21 +319,21 @@
     outline: none;
     z-index: 4;
 
-    .message-box {
+    &>.message-box {
         display: flex;
         flex-direction: column;
-    }
 
-    .message {
-        pointer-events: none;
-        display: inline-flex;
-        align-items: center;
-        flex-direction: row;
-    }
+        &>.message {
+            pointer-events: none;
+            display: inline-flex;
+            align-items: center;
+            flex-direction: row;
 
-    .icon {
-        width: 25px;
-        height: 25px;
+            &>.icon {
+                width: 25px;
+                height: 25px;
+            }
+        }
     }
 
     &::-webkit-scrollbar {
@@ -393,33 +411,33 @@
         gap: 10px;
         justify-content: space-between;
 
-        .left {
+        &>.left {
             pointer-events: none;
             display: flex;
             gap: 5px;
             align-items: center;
+
+            &>.icon {
+                width: 20px;
+                height: 20px;
+            }
         }
 
-        .right {
+        &>.right {
             pointer-events: none;
             display: flex;
             gap: 5px;
             align-items: center;
+
+            &>.more {
+                font-size: 20px;
+                width: 20px;
+                height: 20px;
+            }
         }
 
         *[none] {
             opacity: 0;
-        }
-
-        .icon {
-            width: 20px;
-            height: 20px;
-        }
-
-        .more {
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
         }
     }
 
@@ -480,7 +498,7 @@
         left: 0;
     }
 
-    .image {
+    &>.image {
         pointer-events: none;
     }
 }
@@ -492,7 +510,7 @@
     justify-content: center;
     flex-direction: column;
 
-    .title {
+    &>.title {
         user-select: none;
         display: flex;
         align-items: center;
@@ -505,20 +523,21 @@
             pointer-events: none;
         }
 
-        .icon {
+        &>.icon {
             width: 25px;
             height: 25px;
             display: none;
         }
 
-        .sign {
+        &>.sign {
             font-size: 25px;
             transition: all .2s;
         }
     }
 
-    .content {
+    &>.content {
         display: flex;
+        flex: 0 0 auto;
         flex-direction: column;
         align-items: flex-start;
         height: 0;
@@ -551,7 +570,7 @@
     position: relative;
     z-index: 2;
 
-    .title {
+    &>.title {
         user-select: none;
         display: flex;
         align-items: center;
@@ -564,19 +583,19 @@
             pointer-events: none;
         }
 
-        .icon {
+        &>.icon {
             width: 25px;
             height: 25px;
             display: none;
         }
 
-        .sign {
+        &>.sign {
             font-size: 25px;
             transition: all .2s;
         }
     }
 
-    .content {
+    &>.content {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -630,30 +649,31 @@
         flex-direction: row-reverse;
     }
 
-    .more {
+    &>.more {
         user-select: none;
         font-size: 25px;
         cursor: pointer;
     }
 
-    .content {
+    &>.content {
         width: 100%;
         display: flex;
         gap: 10px;
         align-items: center;
 
-        .widget {
+        &>.widget {
             display: flex;
             justify-content: flex-end;
         }
 
-        .title {
+        &>.title {
             width: 100%;
             text-wrap: nowrap;
             font-size: 20px;
+
         }
 
-        .icon {
+        &>.icon {
             pointer-events: none;
             width: 35px;
             height: 35px;
@@ -672,12 +692,12 @@
         width: 80px;
     }
 
-    .up,
-    .down {
+    &>.up,
+    &>.down {
         font-size: 25px;
     }
 
-    .numbers {
+    &>.numbers {
         display: flex;
         align-items: center;
         flex-direction: row;
@@ -687,18 +707,18 @@
         }
     }
 
-    .skip {
+    &>.skip {
         display: flex;
         align-items: center;
         gap: 5px;
         flex-direction: row;
         overflow: hidden;
 
-        .input {
+        &>.input {
             z-index: 2;
         }
 
-        .button {
+        &>.button {
             transition: all .2s;
             position: absolute;
             right: -50%;
@@ -707,7 +727,7 @@
             scale: 0;
         }
 
-        .button.show {
+        &>.button.show {
             opacity: 1;
             right: 0px;
             scale: 1;
@@ -740,7 +760,7 @@
         &>.twistie {
             font-family: "MaterialIcons", sans-serif;
             font-size: 20px;
-            width: 20px;
+            width: 10px;
             height: 20px;
             opacity: 0;
             pointer-events: none;
@@ -751,15 +771,59 @@
         }
 
         &.parent>.twistie {
+            width: 20px;
             opacity: 1;
         }
     }
 
     &>*[w-item][parent-id="0"],
     &>*[w-item].show {
-        height: 24px;
+        height: 26px;
         opacity: 1;
         pointer-events: all;
+    }
+}
+
+/*=============================================================================================================================================================*/
+.w-switch {
+    display: flex;
+    width: 40px;
+    height: 20px;
+
+    cursor: pointer;
+
+    &::before {
+        transition: all .25s;
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+    }
+
+    &::after {
+        transition: all .2s;
+        content: "";
+        width: 50%;
+        height: 100%;
+        position: absolute;
+    }
+
+    &:checked::after {
+        transform: translate3d(100%, 0, 0px);
+    }
+
+    &.w-min {
+        height: 15px;
+
+        &::after {
+            width: 50%;
+            height: 125%;
+            transform: translate3d(0, -15%, 0px);
+        }
+
+        &:checked::after {
+            transform: translate3d(100%, -15%, 0px);
+        }
     }
 }
 
@@ -793,10 +857,17 @@ w-test {
     cursor: context-menu;
     cursor: pointer;
     animation: forwards reverse;
+
+    transform: translate(0, 0, 0);
 }
 
 
 
+.w-no-events {
+    & * {
+        pointer-events: none;
+    }
+}
 
 .w-display-none {
     display: none;

@@ -66,6 +66,12 @@ function init() {
         new WebGUIPro.Message({
             eventID: "1",
             content: "hello world!1",
+            iconSrc:"./Icon.png",
+            time: 6000
+        });
+        new WebGUIPro.Message({
+            content: "hello world!1",
+            iconSrc: "./Icon.png",
             time: 6000
         });
     }

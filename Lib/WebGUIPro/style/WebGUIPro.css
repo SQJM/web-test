@@ -40,7 +40,7 @@
     background-position: center center;
 
     /* 文本样式 */
-    font-size: 18px;
+    font-size: large;
     line-height: normal;
     text-align: initial;
     text-decoration: none;
@@ -65,6 +65,11 @@
 *[user-select] {
     user-select: text;
     -webkit-user-select: text;
+}
+
+.w-preselection {
+    outline: 2px solid #008cff;
+    outline-offset: 2px;
 }
 
 @font-face {
@@ -107,7 +112,7 @@ body {
     z-index: 99;
 }
 
-/* 水平滚动条 */
+/* 滚动条 */
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;

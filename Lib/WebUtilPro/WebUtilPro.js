@@ -90,8 +90,10 @@ const WebUtilPro = (function () {
     mouseout: "mouseout",
     // 键盘按下事件
     keydown: "keydown",
-    // 键盘释放事件
+    // 键盘松开事件
     keyup: "keyup",
+    // 键盘释放事件
+    keypress: "keypress",
     // 元素获得焦点事件
     focus: "focus",
     // 元素失去焦点事件
@@ -335,21 +337,27 @@ const WebUtilPro = (function () {
   class Judge {
 
     /**
-     * 验证名字是否符合常规
+     * 验证字符串是否符合常规
      * @param {string} data 待验证数据
      * @param {Set} invalidChars 存储违法字符的数组
      * @returns {boolean} 验证结果
      */
-    static isValidName(data, invalidChars) {
+    static isValidString(data, { invalidChars = null, type = "text" } = {}) {
       // 定义合法字符的正则表达式
-      const regex = /^[a-zA-Z0-9-_()!@#$%^&*=+?<>:;\[\]-\u4e00-\u9fa5]+$/;
+      const regex = {
+        text: () => /^[a-zA-Z0-9-_()!@#$%^&*=+?<>:;.\[\]-\u4e00-\u9fa5]+$/.test(data) ,
+        file: () => !/[:\\*\/"<>@?\n]/.test(data),
+      };
 
-      if (regex.test(data)) {
+      const result = regex[type];
+      if (!result) throw Code_Error.ParameterMismatch(type);
+
+      if (result(data)) {
         return true;
       } else {
         if (Judge.isSet(invalidChars)) {
           forEnd(data, (e) => {
-            if (!regex.test(e)) {
+            if (!result.test(e)) {
               invalidChars.add(e);
             }
           });
@@ -494,10 +502,10 @@ const WebUtilPro = (function () {
     }
 
     /**
-     * 判断给定的参数是否为对象类型包括普通对象,数组,null等，并检测对象是否包含指定属性
+     * 判断给定的参数是否为对象类型包括普通对象,数组,null等,并检测对象是否包含指定属性
      * @param {any} obj - 要检查的参数
      * @param {...string} props - 要检测的属性列表
-     * @returns {boolean} 如果参数是对象类型且包含指定属性，则返回 true;否则返回 false
+     * @returns {boolean} 如果参数是对象类型且包含指定属性,则返回 true;否则返回 false
      */
     static isObject(obj, ...props) {
       if (typeof obj !== 'object' || obj === null) {
@@ -1067,7 +1075,7 @@ const WebUtilPro = (function () {
 
     add({
       eventName = generateUniqueId(),
-      type = "keyup",
+      type = WEvent.keypress,
       toggleKey = "",
       callback = () => { }
     }) {
@@ -1083,7 +1091,7 @@ const WebUtilPro = (function () {
         if (!this.isExist(type, eventName)) this.#keydown_Event_Arr.push(obj);
       } else if (type === "keypress") {
         if (!this.isExist(type, eventName)) this.#keypress_Event_Arr.push(obj);
-      }
+      } else throw Code_Error.ParameterMismatch(type);
     }
 
     #IsExist(type, eventName) {
@@ -1109,7 +1117,7 @@ const WebUtilPro = (function () {
             return true;
           }
         });
-      }
+      } else throw Code_Error.ParameterMismatch(type);
       return is;
     }
 
@@ -1126,7 +1134,7 @@ const WebUtilPro = (function () {
           this.#keydown_Event_Arr.splice(arr[1], 1);
         } else if (type === "keypress") {
           this.#keypress_Event_Arr.splice(arr[1], 1);
-        }
+        } else throw Code_Error.ParameterMismatch(type);
     }
 
     getAllEvents(type) {
@@ -1137,15 +1145,15 @@ const WebUtilPro = (function () {
         arr = [...this.#keydown_Event_Arr];
       } else if (type === "keypress") {
         arr = [...this.#keypress_Event_Arr];
-      }
+      } else throw Code_Error.ParameterMismatch(type);
       return arr;
     }
 
-    constructor(isBlocking = false) {
+    constructor(isBlocking = false, target = window) {
       this.isBlocking = isBlocking;
 
       // 按下
-      window.addEventListener("keydown", (event) => {
+      target.addEvent("keydown", (event) => {
         if (this.isBlocking) {
           event.preventDefault();
           event.stopPropagation();
@@ -1161,7 +1169,7 @@ const WebUtilPro = (function () {
       });
 
       // 在按下并释放能够产生字符的键时触发
-      window.addEventListener("keypress", (event) => {
+      target.addEvent("keypress", (event) => {
         if (this.isBlocking) {
           event.preventDefault();
           event.stopPropagation();
@@ -1177,7 +1185,7 @@ const WebUtilPro = (function () {
       });
 
       // 释放
-      window.addEventListener("keyup", (event) => {
+      target.addEvent("keyup", (event) => {
         if (this.isBlocking) {
           event.preventDefault();
           event.stopPropagation();
@@ -1215,7 +1223,7 @@ const WebUtilPro = (function () {
    * @param {array} options.classList - 元素类名列表
    * @param {array} options.attribute - 元素属性列表,每个属性为[key, value]形式的数组
    * @param {string} options.text - 文本元素内容
-   * @param {string} options.contentText - 文本内容
+   * @param {string} options.textContent - 文本内容
    * @param {string} options.html - HTML内容
    * @param {HTMLElement | HTMLElement[]} options.child - 子元素或子元素数组
    * @param {function} options.callback - 回调函数
@@ -1226,7 +1234,7 @@ const WebUtilPro = (function () {
     classList = [],
     attribute = [],
     text = null,
-    contentText = "",
+    textContent = "",
     html = null,
     child = null,
     callback = () => { }
@@ -1236,11 +1244,15 @@ const WebUtilPro = (function () {
       element.classList.add(e);
     });
     forEnd(attribute, (e) => {
-      element.attr(e[0], e[1]);
+      if (Judge.isArray(e)) {
+        e[1] ? element.attr(e[0], e[1]) : element.attr(e[0], "");
+      } else {
+        element.attr(e, "");
+      }
     });
 
-    if (contentText) {
-      element.textContent = contentText;
+    if (textContent) {
+      element.textContent = textContent;
     } else if (text) {
       element.innerText = text;
     } else if (html) {
@@ -1375,7 +1387,7 @@ const WebUtilPro = (function () {
         localStorage.setItem(key, JSON.stringify(value));
         return true;
       } catch (error) {
-        console.error('存储错误：', error);
+        console.error('存储错误:', error);
         return false;
       }
     }
@@ -1386,7 +1398,7 @@ const WebUtilPro = (function () {
         const value = localStorage.getItem(key);
         return value ? JSON.parse(value) : null;
       } catch (error) {
-        console.error('读取错误：', error);
+        console.error('读取错误:', error);
         return null;
       }
     }
@@ -1397,7 +1409,7 @@ const WebUtilPro = (function () {
         localStorage.removeItem(key);
         return true;
       } catch (error) {
-        console.error('删除错误：', error);
+        console.error('删除错误:', error);
         return false;
       }
     }
@@ -1408,7 +1420,7 @@ const WebUtilPro = (function () {
         localStorage.clear();
         return true;
       } catch (error) {
-        console.error('清空错误：', error);
+        console.error('清空错误:', error);
         return false;
       }
     }
@@ -1521,7 +1533,6 @@ const WebUtilPro = (function () {
     }
   }
 
-
   /**
    * 格式化日期字符串为"YYYY-MM-DD"格式
    * @param {string} dateString - 需要格式化的日期字符串,格式为"YYYY-M-D"
@@ -1603,13 +1614,25 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 完整循环数组,并根据条件返回匹配的元素
-   * @param {Array} Arrs 需要循环的数组
-   * @param {Function} condition 循环终止条件函数,接受当前元素和索引作为参数,返回布尔值
-   * @param {Number} start 开始索引
-   * @param {Array<number>} skip 跳过指定索引的元素
-   * @param {Boolean} isReversal 是否逆向遍历数组,默认为false
-   * @returns {any} 匹配到的元素
+   * 遍历数组或指定长度的范围,基于条件执行操作,支持正序或逆序遍历.
+   *
+   * @param {Array|number} Arrs - 被遍历的数组或指定的长度
+   *   - 如果是数组,将遍历数组的每一个元素
+   *   - 如果是数字,将遍历从 `start` 到该数字的索引
+   * @param {Function} condition - 判断条件的回调函数
+   *   - 当遍历元素时,如果传入的参数是数组元素,则回调函数接收 `element, index, count`
+   *   - 如果传入的是索引,则回调函数接收 `index, count`
+   *   - 回调函数可以返回 `true`,`"continue"`,`"break"` 以控制遍历流程:
+   *     - `true`:返回当前元素（数组情况下）或索引（数字情况下）,并停止遍历
+   *     - `"continue"`:跳过当前元素,继续下一次循环
+   *     - `"break"`:停止遍历
+   * @param {Object} [options={}] - 可选参数
+   * @param {number} [options.start=0] - 遍历开始的索引或数字范围的起始值
+   * @param {Array<number>} [options.skip=[]] - 需要跳过的索引数组
+   * @param {number} [options.end=null] - 遍历的结束条件,当计数器达到该值时停止遍历
+   * @param {boolean} [options.isReversal=false] - 是否进行逆序遍历默认为正序遍历
+   * @param {boolean} [options.autoReplace=false] - 是否自动替换数组元素为回调函数的返回值默认为 `false`
+   * @returns {any|null} - 满足条件的元素（对于数组）或索引（对于数字）; 如果没有找到匹配项,则返回 `null`
    */
   function forEnd(Arrs, condition, { start = 0, skip = null, isReversal = false, autoReplace = false } = {}) {
     if (!Judge.isArray(Arrs)) return null;
@@ -1669,7 +1692,7 @@ const WebUtilPro = (function () {
   /**
    * 遍历对象的属性,并根据条件进行处理
    * @param {Object} inputObj - 要遍历的对象
-   * @param {Function} condition - 对每个属性值执行的条件函数，接受参数(value, key, index, count)
+   * @param {Function} condition - 对每个属性值执行的条件函数,接受参数(value, key, index, count)
    * @param {number} [start=0] - 开始遍历的索引,默认为 0
    * @param {Array<number>} [skip=[]] - 跳过的索引数组
    * @returns {*} 如果条件函数返回 true,则返回符合条件的属性值:否则返回 null
@@ -1695,13 +1718,13 @@ const WebUtilPro = (function () {
 
       count++;
     }
-    return null; // 如果没有匹配到任何元素，则返回 null
+    return null; // 如果没有匹配到任何元素,则返回 null
   }
 
   /**
    * 遍历对象的属性,并根据条件进行处理
    * @param {Object} inputObj - 要遍历的对象
-   * @param {Function} condition - 对每个属性值执行的条件函数，接受参数(value, key, index, count)
+   * @param {Function} condition - 对每个属性值执行的条件函数,接受参数(value, key, index, count)
    * @param {number} [start=0] - 开始遍历的索引,默认为 0
    * @param {Array<number>} [skip=[]] - 跳过的索引数组
    * @returns {*} 如果条件函数返回 true,则返回符合条件的属性值:否则返回 null
@@ -2094,7 +2117,7 @@ const WebUtilPro = (function () {
   /**
    * 动态引入多个 CSS 文件
    * @param {Array} arr - 包含 CSS 文件路径的数组
-   *   每个数组项应包含以下结构：
+   *   每个数组项应包含以下结构:
    *     - {string} path - CSS 文件路径
    *     - {function} fn - 在加载完成后执行的回调函数 (可选)
    *     - {HTMLElement} parentNode - CSS 文件插入的父节点 (默认为 document.head) (可选)
@@ -2534,7 +2557,6 @@ const WebUtilPro = (function () {
 
 
   document.addEvent("mouseleave", function () {
-    WLeaveDocument = true;
   });
 
   document.addEvent("visibilitychange", function () {
