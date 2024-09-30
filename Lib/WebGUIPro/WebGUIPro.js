@@ -692,12 +692,12 @@ const WebGUIPro = (function () {
         }
 
         // 设置只读
-        setReadObly(bool = true) {
+        setReadOnly(bool = true) {
             bool ? this.ui.attr("readonly", "") : this.ui.removeAttr("readonly");
         }
 
         // 是否只读
-        isReadonly() {
+        isReadOnly() {
             return this.ui.hasAttr("readonly");
         }
 
@@ -725,6 +725,12 @@ const WebGUIPro = (function () {
         setMaxLength(length = null) {
             if (!Judge.isNumber(length) || !Judge.isNull(length)) throw UI_Error.ParameterMismatch(length);
             Judge.isNull(length) ? this.ui.removeAttr("maxlength") : this.ui.attr("maxlength", length);
+        }
+
+        // 设置最小输入长度
+        setMaxLength(length = null) {
+            if (!Judge.isNumber(length) || !Judge.isNull(length)) throw UI_Error.ParameterMismatch(length);
+            Judge.isNull(length) ? this.ui.removeAttr("minlength") : this.ui.attr("minlength", length);
         }
 
         // 设置 ui 禁用
@@ -1002,6 +1008,59 @@ const WebGUIPro = (function () {
             // 设置禁用项
             ui.setDisabledItem = function (indexOrItem = 0, bool = true) {
                 listUI.setDisabledItem(indexOrItem, content);
+            }
+        }
+
+        static InputContainer(ui, inputUI) {
+            // 获取值
+            ui.getValue = function (returnType = WVarType.string) {
+                return inputUI.getValue(returnType);
+            }
+
+            // 设置只读
+            ui.setReadOnly = function (bool = true) {
+                inputUI.setReadOnly(bool);
+            }
+
+            // 是否只读
+            ui.isReadOnly = function () {
+                console.log(inputUI);
+                return inputUI.isReadOnly();
+            }
+
+            // 设置值
+            ui.setValue = function (value) {
+                inputUI.setValue(value);
+            }
+
+            // 获取值长度
+            ui.getValueLength = function () {
+                return inputUI.getValueLength();
+            }
+
+            // 清空值
+            ui.removeValue = function () {
+                inputUI.removeValue();
+            }
+
+            // 添加值
+            ui.appValue = function (value) {
+                inputUI.appValue(value);
+            }
+
+            // 设置最大输入长度
+            ui.setMaxLength = function (length = null) {
+                inputUI.setMaxLength(length);
+            }
+
+            // 设置最小输入长度
+            ui.setMaxLength = function (length = null) {
+                inputUI.setMaxLength(length);
+            }
+
+            // 设置 ui 禁用
+            ui.setDisabled = function (bool = true) {
+                inputUI.setDisabled(bool);
             }
         }
     }
@@ -1318,6 +1377,28 @@ const WebGUIPro = (function () {
         }
     }
 
+    class InputContainer extends InputUI {
+    
+        // 初始化
+        #init() {
+            this.initUIConfig();
+        }
+
+        constructor(Element = null) {
+            super(Element, {
+            }, (map) => {
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
     class Button extends UI {
         EventAgent = (event) => {
             const TargetElement = event.target;
@@ -1359,6 +1440,27 @@ const WebGUIPro = (function () {
     }
 
     //=======================================================================//
+
+    class WDefault extends UI2 {
+        // 初始化
+        #init() {
+            this.initUIConfig();
+        }
+
+        constructor(Element = new GenerateUI("w-default")) {
+            super(Element, {
+            }, (map) => {
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
 
     class WSelectList extends ListContainer {
         // 添加项
@@ -1507,6 +1609,21 @@ const WebGUIPro = (function () {
                 } else if (event.wEventName === "contextmenu") {
                     this.Callbacks.contextmenu(event);
                 }
+
+                if (this.ui.attr("type") === "number") {
+                    if (this.ui.hasAttr("min")) {
+                        const min = parseInt(this.ui.attr("min"));
+                        if (this.getValue(WVarType.number) < min) {
+                            this.setValue(min);
+                        }
+                    }
+                    if (this.ui.hasAttr("max")) {
+                        const max = parseInt(this.ui.attr("max"));
+                        if (this.getValue(WVarType.number) > max) {
+                            this.setValue(max);
+                        }
+                    }
+                }
             }
         }
 
@@ -1520,7 +1637,7 @@ const WebGUIPro = (function () {
                 cut: () => { },
                 contextmenu: () => { }
             }, (map) => {
-                if (map.has("readObly")) this.setReadObly();
+                if (map.has("readOnly")) this.setReadOnly();
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
@@ -1551,7 +1668,7 @@ const WebGUIPro = (function () {
         #init() {
             this.initUIConfig();
 
-            const fn = debounce((event) => { this.Callbacks.valueChange(event) }, 80);
+            const fn = debounce((event) => { this.Callbacks.valueChange(event, this.getValue()) }, 80);
             this.ui.eventSlot = (event) => {
                 if (event.wEventName === "input") {
                     this.Callbacks.input(event);
@@ -1578,7 +1695,8 @@ const WebGUIPro = (function () {
                 cut: () => { },
                 contextmenu: () => { }
             }, (map) => {
-                if (map.has("readObly")) this.setReadObly();
+                if (map.has("readOnly")) this.setReadOnly();
+
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
@@ -1611,16 +1729,16 @@ const WebGUIPro = (function () {
             if (first !== this.#LegendElement) {
                 this.ui.insertBefore(this.#LegendElement, first);
             }
-            const legendText = this.ui.attr("legend");
-            if (Judge.isTrue(legendText)) {
+
+            if (this.ui.hasAttr("legend")) {
+                this.setLegendText(this.ui.attr("legend"));
                 this.ui.removeAttr("legend")
-                this.setLegendText(legendText);
             } else {
                 throw UI_Error.MissingVitalElement("legend text");
             }
         }
 
-        constructor(Element = null, legend = "") {
+        constructor(Element = new GenerateUI("w-fieldset", { tagName: "fieldset", attribute: ["legend", ""] })) {
             super({
                 delete: () => { }
             }, (map) => {
@@ -1628,8 +1746,6 @@ const WebGUIPro = (function () {
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
-            } else if (Judge.isNull(Element)) {
-                this.ui = new GenerateUI("w-fieldset", { tagName: "fieldset", attribute: ["legend", value] });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
             }
@@ -2254,8 +2370,8 @@ const WebGUIPro = (function () {
 
         // 初始化
         #init() {
-            this.initUIConfig();
             Link.ListContainer(this, this.#ContentElement.Class);
+            this.initUIConfig();
             this.#ContentElement.append(...this.ui.$(">[w-item]"));
             this.#ContentElement.Class.sortItem();
 
@@ -2467,6 +2583,11 @@ const WebGUIPro = (function () {
             return this.#ContentWidgetElement;
         }
 
+        // 获取标题文本
+        getTitleText() {
+            return this.#ContentTitleElement.innerText;
+        }
+
         // 设置标题文本
         setTitleText(text = "") {
             this.#ContentTitleElement.textContent = text;
@@ -2545,7 +2666,7 @@ const WebGUIPro = (function () {
             Body.addEvent("scroll", this.#scrollDetection);
         }
 
-        constructor(Element = null) {
+        constructor(Element = new GenerateUI("w-app-bar", { child: [this.#BarMoreElement, this.#ContentElement] })) {
             super({
                 delete: () => { Body.removeEventr("scroll", this.#scrollDetection) },
                 show: () => { },
@@ -2572,8 +2693,6 @@ const WebGUIPro = (function () {
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
                 this.ui.append(this.#BarMoreElement, this.#ContentElement);
-            } else if (Judge.isNull(Element)) {
-                this.ui = new GenerateUI("w-app-bar", { child: [this.#BarMoreElement, this.#ContentElement] });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
             }
@@ -3088,11 +3207,55 @@ const WebGUIPro = (function () {
                 delete: () => { },
                 valueChange: () => { }
             }, (map) => {
-                if (map.has("readObly")) this.setReadObly();
+                if (map.has("readOnly")) this.setReadOnly();
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
+            } else {
+                throw UI_Error.ParameterMismatch(Element);
+            }
+            this.ui.Class = this;
+            this.#init();
+        }
+    }
+
+    class WProgress extends UI {
+        #SliderElement = createElement({ classList: ["slider"] });
+        #BarElement = createElement({ classList: ["bar"], child: this.#SliderElement });
+        #InputElement = createElement({ tagName: "input", classList: ["input"], attribute: [["type", "range"]], callback: input => new InputContainer(input) });
+
+        // 设置滑块可视性
+        setSlider(bool = false) {
+            if (bool) {
+                this.#SliderElement.css("opacity", "1");
+            } else {
+                this.#SliderElement.css("opacity", "0");
+            }
+        }
+
+        // 初始化
+        #init() {
+            Link.InputContainer(this, this.#InputElement.Class);
+            this.initUIConfig();
+
+            this.#InputElement.addEvent("input", () => {
+                this.#BarElement.css("width", `${this.#InputElement.value}%`);
+            });
+            this.#BarElement.css("width", `${this.#InputElement.value || 0}%`);
+        }
+
+        constructor(Element = new GenerateUI("w-progress", { child: [this.#InputElement, this.#SliderElement, this.#BarElement] })) {
+            super({
+                delete: () => { }
+            }, (map) => {
+                if (map.has("slider")) this.setSlider(TypeCast.strToBool(map.get("slider")));
+                if (map.has("readOnly")) this.setReadOnly();
+            });
+            if (IsUIInit(this, Element)) return false;
+            if (Judge.isHTMLElement(Element)) {
+                this.ui = Element;
+                this.ui.append(this.#InputElement, this.#BarElement);
             } else {
                 throw UI_Error.ParameterMismatch(Element);
             }
@@ -3856,7 +4019,7 @@ const WebGUIPro = (function () {
             });
             if (Judge.isObject(obj)) {
                 this.ui = new GenerateUI("w-contextmenu", {
-                    tagName:"dialog",
+                    tagName: "dialog",
                     child: this.#List
                 });
             } else {
@@ -4044,6 +4207,8 @@ const WebGUIPro = (function () {
     }
 
     const ControlDataList = [
+        ["default", WDefault],
+        ["progress", WProgress],
         ["switch", WSwitch],
         ["list", WList],
         ["tree-list", WTreeList],
@@ -4161,7 +4326,9 @@ const WebGUIPro = (function () {
         Link,
 
         ListContainer,
+        InputContainer,
 
+        WDefault,
         WList,
         WButton,
         WBoolButton,
@@ -4180,6 +4347,7 @@ const WebGUIPro = (function () {
         WPaging,
         WTreeList,
         WSwitch,
+        WProgress,
 
         Dialog,
         Activity,

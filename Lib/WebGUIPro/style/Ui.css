@@ -828,6 +828,40 @@
 }
 
 /*=============================================================================================================================================================*/
+.w-progress {
+    display: inline-block;
+    width: 200px;
+    height: 8px;
+
+    &>.bar {
+        pointer-events: none;
+        height: 100%;
+
+        &>.slider {
+            transform: translate(50%, -25%);
+            position: absolute;
+            right: 0;
+            width: 15px;
+            height: 15px;
+        }
+    }
+
+    &>.input {
+        cursor: context-menu;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+
+        &[readonly]{
+            pointer-events: none;
+        }
+    }
+}
+
+/*=============================================================================================================================================================*/
 w-single-use {
     position: fixed;
     opacity: 0;
@@ -857,6 +891,7 @@ w-test {
     cursor: context-menu;
     cursor: pointer;
     animation: forwards reverse;
+    opacity: 0;
 
     transform: translate(0, 0, 0);
 }

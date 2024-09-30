@@ -273,7 +273,7 @@ const WebUtilPro = (function () {
    * @param {HTMLElement} [obj=document] - 指定在哪个元素下查找默认为 document
    * @return {Object} 包含获取到的 DOM 元素及相关方法的对象
    */
-  function $(selector, obj = document, operation) {
+  function $(selector, obj = document, operation = null) {
     const selectorTypes = {
       "#": "id",
       ".": "class",
@@ -328,6 +328,10 @@ const WebUtilPro = (function () {
       return $(subSelector, this, operation);
     }
 
+    elementObject.isNull = () => {
+      return elementObject.length === 0;
+    }
+
     return elementObject;
   }
 
@@ -345,7 +349,7 @@ const WebUtilPro = (function () {
     static isValidString(data, { invalidChars = null, type = "text" } = {}) {
       // 定义合法字符的正则表达式
       const regex = {
-        text: () => /^[a-zA-Z0-9-_()!@#$%^&*=+?<>:;.\[\]-\u4e00-\u9fa5]+$/.test(data) ,
+        text: () => /^[a-zA-Z0-9-_()!@#$%^&*=+?<>:;.\[\]-\u4e00-\u9fa5]+$/.test(data),
         file: () => !/[:\\*\/"<>@?\n]/.test(data),
       };
 
@@ -471,7 +475,7 @@ const WebUtilPro = (function () {
      * @returns {boolean} 如果参数是数字类型,则返回 true;否则返回 false
      */
     static isNumber(...args) {
-      return Judge.IS(it => (typeof it === 'number' || it instanceof Number), ...args);
+      return Judge.IS(it => (typeof it === 'number' || it instanceof Number || Number.isInteger(it)), ...args);
     }
 
     /**
@@ -1635,7 +1639,7 @@ const WebUtilPro = (function () {
    * @returns {any|null} - 满足条件的元素（对于数组）或索引（对于数字）; 如果没有找到匹配项,则返回 `null`
    */
   function forEnd(Arrs, condition, { start = 0, skip = null, isReversal = false, autoReplace = false } = {}) {
-    if (!Judge.isArray(Arrs)) return null;
+    if (!Judge.isArray(Arrs) && !Judge.isNumber(Arrs)) return null;
     let count = 0;
     if (skip === null) {
       skip = []; // 如果skip未提供,则设为空数组
