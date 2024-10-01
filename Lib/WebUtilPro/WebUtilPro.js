@@ -1552,20 +1552,6 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 计算给定起始日期与指定日期之间的天数差
-   * @param {string} strStartDate - 起始日期
-   * @param {string} [strEndtDate=new Date] - 结束日期 默认为当前日期
-   * @returns {number} - 天数差
-   */
-  function calculateDaysDiff(strStartDate, strEndtDate = new Date) {
-    let startDate = new Date(strStartDate);
-    let todayDate = new Date(strEndtDate);
-    let timeDiff = Math.abs(todayDate.getTime() - startDate.getTime());
-    let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    return daysDiff;
-  }
-
-  /**
    * 字符串转 innerHTML
    * @param {String} str - 要转换的字符串
    * @returns {innerHTML} - 解析后的 innerHTML
@@ -2008,32 +1994,72 @@ const WebUtilPro = (function () {
    * Algorithm 类提供了一系列静态方法的算法操作
    */
   class Algorithm {
+
+    /**
+     * 计算给定起始日期与指定日期之间的天数差
+     * @param {string} strStartDate - 起始日期,格式通常为 'YYYY-MM-DD'
+     * @param {string} [strEndtDate=new Date] - 结束日期,格式通常为 'YYYY-MM-DD',默认为当前日期
+     * @returns {number} - 两个日期之间的天数差
+     */
+    static calculateDaysDiff(strStartDate, strEndtDate = new Date) {
+      let startDate = new Date(strStartDate); // 将字符串转换为日期对象
+      let todayDate = new Date(strEndtDate); // 默认为当前日期
+      let timeDiff = Math.abs(todayDate.getTime() - startDate.getTime()); // 获取两个日期的时间差（毫秒）
+      let daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)); // 将时间差转换为天数，并向上取整
+      return daysDiff; // 返回天数差
+    }
+
+    /**
+     * 获取指定范围内的所有整数
+     * @param {number} start - 范围的起始值
+     * @param {number} end - 范围的结束值
+     * @returns {number[]} - 包含范围内所有整数的数组
+     */
     static getNumbersBetween(start, end) {
-      let numbers = [];
+      let numbers = []; // 存储结果的数组
       // 确保start不大于end
       let min = Math.min(start, end);
       let max = Math.max(start, end);
 
       // 使用循环从min遍历到max(包括max)
       for (let i = min; i <= max; i++) {
-        numbers.push(i);
+        numbers.push(i); // 将每个整数添加到数组中
       }
-      return numbers;
+      return numbers; // 返回结果数组
     }
 
+    /**
+     * 获取指定范围内的所有整数,允许指定步长
+     * @param {number} start - 范围的起始值
+     * @param {number} end - 范围的结束值
+     * @param {number} [step=1] - 步长,默认为1
+     * @returns {number[]} - 包含范围内所有整数的数组，按照指定步长
+     */
     static getNumbersBetweenWithStep(start, end, step = 1) {
-      let numbers = [];
+      let numbers = []; // 存储结果的数组
       // 确保start不大于end,且step为正数  
       if (start > end && step > 0) {
-        [start, end] = [end, start];
+        [start, end] = [end, start]; // 交换start和end的值
         step = -step; // 如果start大于end,则反向遍历并改变步长  
       }
 
       // 使用循环从start遍历到end(包括end)
       for (let i = start; (step > 0 && i <= end) || (step < 0 && i >= end); i += step) {
-        numbers.push(i);
+        numbers.push(i); // 将每个整数添加到数组中
       }
-      return numbers;
+      return numbers; // 返回结果数组
+    }
+
+    /**
+     * 计算当前值相对于最大值的百分比
+     * @param {number} currentValue - 当前值
+     * @param {number} maxValue - 最大值
+     * @param {number} [fixed=0] - 小数点后保留的位数,默认为0
+     * @returns {string} - 百分比值,保留指定位数的小数
+     */
+    static calculatePercentage(currentValue, maxValue, fixed = 0) {
+      let percentage = (currentValue / maxValue) * 100; // 计算百分比
+      return percentage.toFixed(fixed); // 保留指定位数的小数并返回
     }
   }
 
@@ -2169,7 +2195,6 @@ const WebUtilPro = (function () {
     _CLOSE_PAGE_WebUtilPro_,
     _INIT_PAGE_WebUtilPro_,
 
-    calculateDaysDiff,
     checkClassHasFunction,
     cookieUtil,
     createElement,

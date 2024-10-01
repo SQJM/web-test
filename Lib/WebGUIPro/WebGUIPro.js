@@ -1010,59 +1010,6 @@ const WebGUIPro = (function () {
                 listUI.setDisabledItem(indexOrItem, content);
             }
         }
-
-        static InputContainer(ui, inputUI) {
-            // 获取值
-            ui.getValue = function (returnType = WVarType.string) {
-                return inputUI.getValue(returnType);
-            }
-
-            // 设置只读
-            ui.setReadOnly = function (bool = true) {
-                inputUI.setReadOnly(bool);
-            }
-
-            // 是否只读
-            ui.isReadOnly = function () {
-                console.log(inputUI);
-                return inputUI.isReadOnly();
-            }
-
-            // 设置值
-            ui.setValue = function (value) {
-                inputUI.setValue(value);
-            }
-
-            // 获取值长度
-            ui.getValueLength = function () {
-                return inputUI.getValueLength();
-            }
-
-            // 清空值
-            ui.removeValue = function () {
-                inputUI.removeValue();
-            }
-
-            // 添加值
-            ui.appValue = function (value) {
-                inputUI.appValue(value);
-            }
-
-            // 设置最大输入长度
-            ui.setMaxLength = function (length = null) {
-                inputUI.setMaxLength(length);
-            }
-
-            // 设置最小输入长度
-            ui.setMaxLength = function (length = null) {
-                inputUI.setMaxLength(length);
-            }
-
-            // 设置 ui 禁用
-            ui.setDisabled = function (bool = true) {
-                inputUI.setDisabled(bool);
-            }
-        }
     }
 
     //=======================================================================//
@@ -1377,28 +1324,6 @@ const WebGUIPro = (function () {
         }
     }
 
-    class InputContainer extends InputUI {
-    
-        // 初始化
-        #init() {
-            this.initUIConfig();
-        }
-
-        constructor(Element = null) {
-            super(Element, {
-            }, (map) => {
-            });
-            if (IsUIInit(this, Element)) return false;
-            if (Judge.isHTMLElement(Element)) {
-                this.ui = Element;
-            } else {
-                throw UI_Error.ParameterMismatch(Element);
-            }
-            this.ui.Class = this;
-            this.#init();
-        }
-    }
-
     class Button extends UI {
         EventAgent = (event) => {
             const TargetElement = event.target;
@@ -1445,10 +1370,14 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-default")) {
             super(Element, {
+                delete: () => { },
+                create: () => { }
             }, (map) => {
             });
             if (IsUIInit(this, Element)) return false;
@@ -1483,11 +1412,14 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-select-list")) {
             super(Element, {
                 delete: () => { },
+                create: () => { },
                 addItem: () => { },
                 removeItem: () => { },
                 selectItem: () => true,
@@ -1509,11 +1441,14 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-list")) {
             super(Element, {
                 delete: () => { },
+                create: () => { },
                 addItem: () => { },
                 removeItem: () => { },
                 selectItem: () => true,
@@ -1537,11 +1472,14 @@ const WebGUIPro = (function () {
             this.ui.eventSlot = (event) => {
                 if (event.wEventName === "click") this.Callbacks.click(event);
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-button", { tagName: "button" })) {
             super(Element, {
                 delete: () => { },
+                create: () => { },
                 click: () => { }
             }, (map) => {
                 if (map.has("eventAgent")) this.setEventAgent();
@@ -1571,11 +1509,14 @@ const WebGUIPro = (function () {
                     this.setBool(!bool);
                 }
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-bool-button", { tagName: "button" })) {
             super(Element, {
                 delete: () => { },
+                create: () => { },
                 click: () => { }
             }, (map) => {
                 if (map.has("eventAgent")) this.setEventAgent();
@@ -1625,11 +1566,14 @@ const WebGUIPro = (function () {
                     }
                 }
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-edit", { tagName: "input", attribute: ["type", WInputType.text] })) {
             super({
                 delete: () => { },
+                create: () => { },
                 input: () => { },
                 valueChange: () => { },
                 copy: () => { },
@@ -1683,11 +1627,14 @@ const WebGUIPro = (function () {
                     this.Callbacks.contextmenu(event);
                 }
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-text", { tagName: "textarea" })) {
             super({
                 delete: () => { },
+                create: () => { },
                 input: () => { },
                 valueChange: () => { },
                 copy: () => { },
@@ -1736,11 +1683,14 @@ const WebGUIPro = (function () {
             } else {
                 throw UI_Error.MissingVitalElement("legend text");
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-fieldset", { tagName: "fieldset", attribute: ["legend", ""] })) {
             super({
-                delete: () => { }
+                delete: () => { },
+                create: () => { },
             }, (map) => {
             });
             if (IsUIInit(this, Element)) return false;
@@ -1797,6 +1747,11 @@ const WebGUIPro = (function () {
             return this.ui.$("[w-view]");
         }
 
+        // 获取视图数量
+        getViewSize() {
+            return this.ui.$("[w-view]").length;
+        }
+
         // 获取选中视图
         getSelectView() {
             return this.ui.$(">[w-view].select").first;
@@ -1805,6 +1760,7 @@ const WebGUIPro = (function () {
         // 选择视图
         selectView(indexOrView = 0) {
             WView.RemoveSelectTagView(this.ui);
+            if (indexOrView >= this.getViewSize()) return false;
             const view = WView.ReturnUiInView(indexOrView, this);
             WView.SelectView(view);
             this.Callbacks.selectView(indexOrView);
@@ -1855,11 +1811,14 @@ const WebGUIPro = (function () {
             this.initUIConfig();
 
             this.sortView();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-stacked")) {
             super({
                 delete: () => { },
+                create: () => { },
                 addView: () => { },
                 removeView: () => { },
                 selectView: () => { },
@@ -2054,11 +2013,14 @@ const WebGUIPro = (function () {
                     this.removeTab(WItem.GetIndex(item));
                 }
             });
+
+            this.Callbacks.create();
         }
 
         constructor(Element = null) {
             super({
                 delete: () => { },
+                create: () => { },
                 addTab: () => { },
                 removeTab: () => { },
                 selectTab: () => { },
@@ -2153,11 +2115,14 @@ const WebGUIPro = (function () {
                 if (!item || WItem.IsDisabled(item)) return;
                 this.Callbacks.selectItem(item);
             });
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-breadcrumbs")) {
             super({
                 delete: () => { },
+                create: () => { },
                 setItemPath: () => { },
                 selectItem: () => { }
             }, (map) => {
@@ -2296,11 +2261,14 @@ const WebGUIPro = (function () {
             } else {
                 this.setLayout(WLayoutDirection.horizontal);
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-sash")) {
             super({
                 delete: () => { },
+                create: () => { },
                 move: () => true,
                 dblclick: () => { }
             }, (map) => {
@@ -2384,11 +2352,14 @@ const WebGUIPro = (function () {
                 if (event.wEventName !== "click") return;
                 this.setShowState(!this.ui.hasAttr("open"));
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = null) {
             super({
                 delete: () => { },
+                create: () => { },
                 show: () => { },
                 close: () => { },
                 selectItem: () => { }
@@ -2461,8 +2432,8 @@ const WebGUIPro = (function () {
 
         // 初始化
         #init() {
-            this.initUIConfig(this, this.#ContentElement.Class);
             Link.ListContainer(this, this.#ContentElement.Class);
+            this.initUIConfig(this, this.#ContentElement.Class);
             this.#ContentElement.append(...this.ui.$(">[w-item]"));
             this.#ContentElement.Class.sortItem();
 
@@ -2479,11 +2450,14 @@ const WebGUIPro = (function () {
                 if (event.wEventName !== "click") return;
                 this.setShowState(!this.ui.hasAttr("open"));
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = null) {
             super({
                 delete: () => { },
+                create: () => { },
                 show: () => { },
                 close: () => { },
                 selectItem: () => { }
@@ -2550,11 +2524,14 @@ const WebGUIPro = (function () {
         // 初始化
         #init() {
             this.initUIConfig();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-widget")) {
             super({
                 delete: () => { },
+                create: () => { },
                 contextmenu: () => { }
             }, (map) => {
             });
@@ -2664,11 +2641,14 @@ const WebGUIPro = (function () {
             this.setTitleText(this.ui.attr("app-title"));
 
             Body.addEvent("scroll", this.#scrollDetection);
+
+            this.Callbacks.create();
         }
 
-        constructor(Element = new GenerateUI("w-app-bar", { child: [this.#BarMoreElement, this.#ContentElement] })) {
+        constructor(Element = null) {
             super({
                 delete: () => { Body.removeEventr("scroll", this.#scrollDetection) },
+                create: () => { },
                 show: () => { },
                 close: () => { }
             }, (map) => {
@@ -2690,9 +2670,12 @@ const WebGUIPro = (function () {
                 }
             });
             if (IsUIInit(this, Element)) return false;
+
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
                 this.ui.append(this.#BarMoreElement, this.#ContentElement);
+            } else if (Element === null) {
+                this.ui = new GenerateUI("w-app-bar", { child: [this.#BarMoreElement, this.#ContentElement] });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
             }
@@ -2707,6 +2690,8 @@ const WebGUIPro = (function () {
             this.initUIConfig();
 
             this.addAddEventSlot();
+
+            this.Callbacks.create();
         }
 
         // 给所有 ui 添加事件槽
@@ -2766,6 +2751,7 @@ const WebGUIPro = (function () {
         constructor(Element = new GenerateUI("w-event-slot")) {
             super({
                 delete: () => { },
+                create: () => { },
                 monitor: () => true,
             }, (map) => {
             });
@@ -2852,11 +2838,14 @@ const WebGUIPro = (function () {
             });
 
             this.skip();
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-paging")) {
             super({
                 delete: () => { },
+                create: () => { },
                 skip: () => { }
             }, (map) => {
             });
@@ -3076,6 +3065,7 @@ const WebGUIPro = (function () {
             const fn = (arr, root = this.#RootData) => {
                 forEnd(arr, obj => {
                     const node = this.#createNodeItem(obj.text);
+                    node["id-key"] = obj["id-key"] || "";
                     root.push(node);
 
                     const child = obj["child"];
@@ -3116,6 +3106,7 @@ const WebGUIPro = (function () {
             const fn = (data, indentLevel = 0, parent = 0) => {
                 forEnd(data, obj => {
                     index++;
+                    obj.element.attr("id-key", obj["id-key"] || "");
                     obj.element.attr("data-id", index);
                     obj.element.attr("parent-id", parent);
                     obj.element.$(".indent").first.css("width", `${indentLevel}px`);
@@ -3142,7 +3133,7 @@ const WebGUIPro = (function () {
 
             this.ui.addEvent("click", event => {
                 const TargetElement = event.target;
-                if (!this.ui.contains(TargetElement) || TargetElement === this.ui || !this.Callbacks.selectItem(TargetElement)) return;
+                if (!this.ui.contains(TargetElement) || TargetElement === this.ui || !this.Callbacks.selectItem(TargetElement, parseInt(TargetElement.attr("data-id")))) return;
 
                 if (TargetElement.hasClass("parent")) {
                     this.#findElementById(parseInt(TargetElement.attr("data-id")), item => {
@@ -3160,17 +3151,20 @@ const WebGUIPro = (function () {
 
                 WItem.RemoveSelectTagItem(this.ui);
                 WItem.SelectItem(TargetElement);
-                this.Callbacks.selectItemChange(TargetElement);
+                this.Callbacks.selectItemChange(TargetElement, parseInt(TargetElement.attr("data-id")));
             });
             this.ui.addEvent("contextmenu", (event) => {
                 const TargetElement = event.target;
                 this.Callbacks.contextMenu(event, TargetElement);
             });
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-tree-list")) {
             super({
                 delete: () => { },
+                create: () => { },
                 addItem: () => { },
                 removeItem: () => { },
                 selectItem: () => true,
@@ -3200,11 +3194,14 @@ const WebGUIPro = (function () {
             this.ui.eventSlot = (event) => {
                 if (event.wEventName === "click") this.Callbacks.valueChange(event)
             }
+
+            this.Callbacks.create();
         }
 
         constructor(Element = new GenerateUI("w-switch")) {
             super({
                 delete: () => { },
+                create: () => { },
                 valueChange: () => { }
             }, (map) => {
                 if (map.has("readOnly")) this.setReadOnly();
@@ -3223,7 +3220,14 @@ const WebGUIPro = (function () {
     class WProgress extends UI {
         #SliderElement = createElement({ classList: ["slider"] });
         #BarElement = createElement({ classList: ["bar"], child: this.#SliderElement });
-        #InputElement = createElement({ tagName: "input", classList: ["input"], attribute: [["type", "range"]], callback: input => new InputContainer(input) });
+        #InputElement = createElement({ tagName: "input", classList: ["input"], attribute: [["type", "range"]] });
+
+        #Max = 100;
+
+        // 设置进度条宽度
+        #setBarWidth() {
+            this.#BarElement.css("width", `${Algorithm.calculatePercentage(this.getValue(WVarType.number), this.#Max) || 0}%`);
+        }
 
         // 设置滑块可视性
         setSlider(bool = false) {
@@ -3234,20 +3238,72 @@ const WebGUIPro = (function () {
             }
         }
 
+        // 获取值
+        getValue(returnType = WVarType.string) {
+            if (returnType === WVarType.string) {
+                return this.#InputElement.value;
+            } else if (returnType === WVarType.number) {
+                return parseInt(this.#InputElement.value);
+            } else if (returnType === WVarType.float) {
+                return parseFloat(this.#InputElement.value);
+            } else throw UI_Error.ParameterMismatch(returnType);
+        }
+
+        // 设置只读
+        setReadOnly(bool = true) {
+            bool ? this.#InputElement.attr("readonly", "") : this.#InputElement.removeAttr("readonly");
+        }
+
+        // 是否只读
+        isReadOnly() {
+            return this.#InputElement.hasAttr("readonly");
+        }
+
+        // 设置值
+        setValue(value) {
+            this.#InputElement.value = value;
+            this.#setBarWidth();
+        }
+
+        // 设置最大值
+        setMaxValue(value) {
+            this.#Max = parseInt(value);
+            this.#InputElement.attr("max", value);
+        }
+
+        // 清空值
+        removeValue() {
+            this.#InputElement.value = 0;
+            this.#BarElement.css("width", "0%");
+        }
+
+        // 添加值
+        appValue(value) {
+            this.#InputElement.value = this.#InputElement.value + value;
+            this.#setBarWidth();
+        }
+
+        // 设置 ui 禁用
+        setDisabled(bool = true) {
+            bool ? this.#InputElement.attr("disabled", "") : this.#InputElement.removeAttr("disabled");
+        }
+
         // 初始化
         #init() {
-            Link.InputContainer(this, this.#InputElement.Class);
             this.initUIConfig();
 
             this.#InputElement.addEvent("input", () => {
-                this.#BarElement.css("width", `${this.#InputElement.value}%`);
+                this.#setBarWidth();
             });
-            this.#BarElement.css("width", `${this.#InputElement.value || 0}%`);
+            this.#setBarWidth();
+
+            this.Callbacks.create();
         }
 
-        constructor(Element = new GenerateUI("w-progress", { child: [this.#InputElement, this.#SliderElement, this.#BarElement] })) {
+        constructor(Element = null) {
             super({
-                delete: () => { }
+                delete: () => { },
+                create: () => { }
             }, (map) => {
                 if (map.has("slider")) this.setSlider(TypeCast.strToBool(map.get("slider")));
                 if (map.has("readOnly")) this.setReadOnly();
@@ -3256,6 +3312,8 @@ const WebGUIPro = (function () {
             if (Judge.isHTMLElement(Element)) {
                 this.ui = Element;
                 this.ui.append(this.#InputElement, this.#BarElement);
+            } else if (Element === null) {
+                this.ui = new GenerateUI("w-progress", { child: [this.#InputElement, this.#SliderElement, this.#BarElement] });
             } else {
                 throw UI_Error.ParameterMismatch(Element);
             }
@@ -3279,7 +3337,7 @@ const WebGUIPro = (function () {
                 tagName: "h1",
                 classList: ["text"],
             }),
-            titleBtn: WindowFlags.Get(WindowFlags.MinButtonHint | WindowFlags.RestoreButtonHint),
+            titleBtn: null,
             title: createElement({
                 classList: ["title"]
             }),
@@ -3491,11 +3549,13 @@ const WebGUIPro = (function () {
             windowOperation = WWindowOperation.default,
             callbackButton = [],
             draggable = true,
+            flags = WindowFlags.Get(WindowFlags.MinButtonHint | WindowFlags.RestoreButtonHint),
             render = true
         } = {}) {
             uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
+            this.#View.titleBtn = flags;
             this.#View.titleText.textContent = title;
             this.#View.title.append(this.#View.titleIcon, this.#View.titleText, this.#View.titleBtn);
 
@@ -3534,11 +3594,13 @@ const WebGUIPro = (function () {
             if (render) {
                 anewRender(this.ui);
             }
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 close: () => { },
                 titleButton: (eventName) => {
                     if (eventName === "close") this.delete()
@@ -3637,11 +3699,14 @@ const WebGUIPro = (function () {
             if (render) {
                 anewRender(this.ui);
             }
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 close: () => { }
             });
             if (Judge.isObject(obj)) {
@@ -3686,11 +3751,14 @@ const WebGUIPro = (function () {
 
 
             parent.appendFragment(this.ui);
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 close: () => {
                     this.ui.showModal();
                     switch (this.getDirection()) {
@@ -3784,11 +3852,14 @@ const WebGUIPro = (function () {
                 });
                 this.setDraggableLimit(limit);
             }
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 close: () => { },
                 draggable: () => true
             });
@@ -3874,11 +3945,14 @@ const WebGUIPro = (function () {
                 parent.appendFragment(this.ui);
             }
             this.ui.scrollTo(0, this.ui.rect().height);
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 remove: message => {
                     elementAnimation(message, "WebGUIPro-scale-opacity .3s reverse forwards", () => {
                         message.remove();
@@ -4009,11 +4083,14 @@ const WebGUIPro = (function () {
             this.ui.removeAttr("open");
             this.parent.appendFragment(this.ui);
             this.setXY(x, y);
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 click: () => { },
                 close: () => { }
             });
@@ -4066,11 +4143,14 @@ const WebGUIPro = (function () {
 
             this.ui.show();
             parent.appendFragment(this.ui);
+
+            this.Callbacks.create();
         }
 
         constructor(obj = {}) {
             super({
                 delete: () => { },
+                create: () => { },
                 remove: () => {
                     elementAnimation(this.ui, "WebGUIPro-opacity .2s reverse forwards", () => {
                         this.delete();
@@ -4326,7 +4406,6 @@ const WebGUIPro = (function () {
         Link,
 
         ListContainer,
-        InputContainer,
 
         WDefault,
         WList,
