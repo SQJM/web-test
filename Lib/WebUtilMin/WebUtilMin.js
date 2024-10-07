@@ -1,6 +1,6 @@
 /**
  * @name WebUtilMin
- * @description 网页工具
+ * @description 简单网页工具
  * @version 2.5.0
  * @author Wang Jia Ming
  * @createDate 2024-10-1
@@ -8,7 +8,7 @@
  * 
  * https://opensource.org/licenses/AGPL-3.0
  */
-const _WebUtilPro_VERSION = "2.5.0";
+const _WebUtilMin_VERSION = "2.5.0";
 var Html = document.getElementsByTagName("html")[0];
 var Head = document.head;
 var Body = document.body;

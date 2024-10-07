@@ -11,8 +11,11 @@
  * 依赖库/框架:
  * - WebUtilPro.js (2.5.0)
  */
+const _WebGUIPro_VERSION = "2.5.0";
 const WebGUIPro = (function () {
     "use strict";
+
+    if (_WebUtilPro_VERSION !== "2.5.0") throw `No matching WebUtilPro(2.5.0)`;
 
     const {
         $,
@@ -706,9 +709,20 @@ const WebGUIPro = (function () {
             this.ui.value = value;
         }
 
+        // 设置状态
+        setState(bool = true){
+            if (!Judge.isBoolean(bool)) throw UI_Error.ParameterMismatch(bool);
+            this.ui.checked = bool;
+        }
+
         // 获取值长度
         getValueLength() {
             return this.ui.value.length;
+        }
+
+        // 获取状态
+        getState() {
+            return this.ui.checked;
         }
 
         // 清空值
@@ -1276,9 +1290,8 @@ const WebGUIPro = (function () {
             }
 
             this.ui.addEvent("mousedown", (event) => {
-                if (this.TriggerMode !== WEvent.mousedown) return;
-
                 const TargetElement = event.target;
+                if (this.TriggerMode !== WEvent.mousedown || TargetElement.hasAttr("w-prevent-default")) return;
                 const item = WItem.GetItem(TargetElement, this.ui);
                 if (!this.#SeriesTrigger && !this.#MultipleMode) {
                     const si = this.getSelectItem();
@@ -2398,8 +2411,8 @@ const WebGUIPro = (function () {
             this.#TitleTextElement.textContent = text;
         }
 
-        // 获取标题文本
-        getTitleText() {
+        // 获取选择值
+        getValue() {
             return this.#TitleTextElement.textContent;
         }
 
@@ -2413,10 +2426,15 @@ const WebGUIPro = (function () {
             }
         }
 
-        // 选择项
-        selectItem(index = 0) {
-            if (!Judge.isNumber(index)) throw UI_Error.ParameterMismatch(index);
-            this.#ContentElement.Class.selectItem(index);
+        // 通过字符串选择项
+        selectTextItem(text = "") {
+            if (!Judge.isString(text)) throw UI_Error.ParameterMismatch(text);
+            forEnd(this.#ContentElement.Class.getItemAll(), item => {
+                if (item.textContent === text) {
+                    this.selectItem(parseInt(item.attr("w-index")));
+                    return true;
+                }
+            });
         }
 
         // 设置显示状态
@@ -3055,7 +3073,7 @@ const WebGUIPro = (function () {
         }
 
         // 加载数据
-        loadData(json = {} || "") {
+        loadData(json = {} || "", isRender = false) {
             if (!(Judge.isString(json) || Judge.isObject(json))) throw UI_Error.ParameterMismatch(json);
             if (Judge.isString(json)) json = JSON.parse(json);
             const data = json["WTreeData"];
@@ -3075,6 +3093,7 @@ const WebGUIPro = (function () {
                 });
             }
             fn(data);
+            isRender && this.render();
         }
 
         // 快速渲染
@@ -3192,7 +3211,7 @@ const WebGUIPro = (function () {
             this.ui.attr("type", "checkbox");
 
             this.ui.eventSlot = (event) => {
-                if (event.wEventName === "click") this.Callbacks.valueChange(event)
+                if (event.wEventName === "click") this.Callbacks.stateChange(this.getState())
             }
 
             this.Callbacks.create();
@@ -3202,7 +3221,7 @@ const WebGUIPro = (function () {
             super({
                 delete: () => { },
                 create: () => { },
-                valueChange: () => { }
+                stateChange: () => { }
             }, (map) => {
                 if (map.has("readOnly")) this.setReadOnly();
             });

@@ -66,7 +66,7 @@ function init() {
         new WebGUIPro.Message({
             eventID: "1",
             content: "hello world!1",
-            iconSrc:"./Icon.png",
+            iconSrc: "./Icon.png",
             time: 6000
         });
         new WebGUIPro.Message({
@@ -129,6 +129,24 @@ function test3() {
         direction: WDirection.Left
     });
     d.show();
+
+    const j =
+    {
+        "type": "TBT",
+        "name": "Easy",
+        "version": "1.0.0",
+        "description": "This Blog Theme. 2024/10/07",
+        "author": "SQJM",
+        "state": false,
+        "data": {
+            "div": {
+                "color": "red"
+            }
+        },
+        "depend": {
+            "WebUtilPro": "2.5.0"
+        }
+    }
 }
 
 window.onload = () => {

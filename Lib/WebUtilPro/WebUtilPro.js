@@ -522,6 +522,24 @@ const WebUtilPro = (function () {
     }
 
     /**
+     * 检查对象中是否包含指定的键
+     * @param {Object} obj - 要检查的对象
+     * @param {string} key - 要查找的键名
+     * @returns {boolean} - 如果键存在于对象中,则返回true,否则返回false
+     */
+    static isKeyInObject(obj, key) {
+      if (!this.isObject(obj)) return false;
+      let result = false;
+      forIn(obj, (value, _key) => {
+        if (_key === key) {
+          result = true;
+          return result;
+        }
+      });
+      return result;
+    }
+
+    /**
      * 判断给定的参数是否为空对象
      * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是空对象,则返回 true;否则返回 false
@@ -1222,15 +1240,15 @@ const WebUtilPro = (function () {
 
   /**
    * 创建HTML元素
-   * @param {object} options - 元素选项
-   * @param {string} options.tagName - 元素标签名
-   * @param {array} options.classList - 元素类名列表
-   * @param {array} options.attribute - 元素属性列表,每个属性为[key, value]形式的数组
-   * @param {string} options.text - 文本元素内容
-   * @param {string} options.textContent - 文本内容
-   * @param {string} options.html - HTML内容
-   * @param {HTMLElement | HTMLElement[]} options.child - 子元素或子元素数组
-   * @param {function} options.callback - 回调函数
+   * @param {Object} options - 元素选项
+   * @param {string} [options.tagName="div"] - 元素的标签名,默认为"div"
+   * @param {Array} [options.classList=[]] - 元素的类名列表
+   * @param {Array} [options.attribute=[]] - 元素的属性列表,每个属性为[key,value]形式的数组
+   * @param {string} [options.text=null] - 文本元素内容
+   * @param {string} [options.textContent=""] - 文本内容
+   * @param {string} [options.html=null] - HTML内容
+   * @param {(HTMLElement|HTMLElement[])} [options.child=null] - 子元素或子元素数组
+   * @param {Function} [options.callback=noop] - 创建元素后执行的回调函数
    * @returns {HTMLElement} - 新创建的HTML元素
    */
   function createElement({
@@ -1244,16 +1262,25 @@ const WebUtilPro = (function () {
     callback = () => { }
   } = {}) {
     const element = document.createElement(tagName);
-    forEnd(classList, (e) => {
-      element.classList.add(e);
-    });
-    forEnd(attribute, (e) => {
-      if (Judge.isArray(e)) {
-        e[1] ? element.attr(e[0], e[1]) : element.attr(e[0], "");
-      } else {
-        element.attr(e, "");
-      }
-    });
+
+    if (Judge.isArray(classList)) {
+      forEnd(classList, (e) => {
+        element.classList.add(e);
+      });
+    } else if (Judge.isString(classList)) {
+      element.classList.add(classList);
+    }
+    if (Judge.isArray(attribute)) {
+      forEnd(attribute, (e) => {
+        if (Judge.isArray(e)) {
+          e[1] ? element.attr(e[0], e[1]) : element.attr(e[0], "");
+        } else {
+          element.attr(e, "");
+        }
+      });
+    } else if (Judge.isString(attribute)) {
+      element.attr(attribute, "");
+    }
 
     if (textContent) {
       element.textContent = textContent;
@@ -1808,7 +1835,6 @@ const WebUtilPro = (function () {
           arr.push(key);
         }
       }
-
       return arr;
     }
 
@@ -1893,6 +1919,17 @@ const WebUtilPro = (function () {
       return true;
     }
     return false;
+  }
+
+  /**
+    * 执行一次异步功能
+    * @param { Function } fn - 要执行的函数,它应该返回一个promise
+    * @returns { Promise } -与函数的结果一起解析的Promise
+    * @throws { Error } -如果提供的参数不是函数,则抛出错误
+    */
+  function runAsyncOnce(fn = () => { }) {
+    if (!Judge.isFunction(fn)) throw Code_Error.ParameterMismatch(fn);
+    return new Promise(resolve => { resolve(fn()) });
   }
 
   /**
@@ -2163,6 +2200,7 @@ const WebUtilPro = (function () {
    */
   function _CLOSE_PAGE_WebUtilPro_(callback = () => { }, time = 200, isOriginal = true) {
     try {
+      MainWindow.style.pointerEvents = "none";
       setTimeout(() => {
         _CLOSE_PAGE_WebUtilPro_FN();
         MainWindow.style.opacity = "0";
@@ -2179,7 +2217,7 @@ const WebUtilPro = (function () {
    */
   function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
     try {
-      MainWindow.style.display = "block";
+      MainWindow.style.pointerEvents = "all";
       setTimeout(() => {
         _INIT_PAGE_WebUtilPro_FN();
         MainWindow.style.opacity = "1";
@@ -2223,6 +2261,7 @@ const WebUtilPro = (function () {
     setElementInAllPrototypeRecursive,
     strToinnerHTML,
     updateFavicon,
+    runAsyncOnce,
     RangeCorrection,
 
     ExternalControl,
