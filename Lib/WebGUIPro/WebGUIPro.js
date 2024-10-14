@@ -154,6 +154,13 @@ const WebGUIPro = (function () {
         forEnd(ui.$("[winit]"), e => e.Class.delete());
     }
 
+    function _DeleteUi(This) {
+        _DeleteSonUi(This.ui);
+        This.Callbacks.delete();
+        _WebUtilPro__ZERO_ELEMENT.focus();
+        This.ui.remove();
+    }
+
     function _ConfigToMap(config) {
         if (Judge.isFalse(config)) return;
         if (!Judge.isString(config)) throw UI_Error.ParameterMismatch(config);
@@ -633,9 +640,7 @@ const WebGUIPro = (function () {
 
         // 删除 ui
         delete() {
-            _DeleteSonUi(this.ui);
-            this.Callbacks.delete();
-            this.ui.remove();
+            _DeleteUi(this);
         }
 
         // 判断元素是否属于 ui
@@ -664,9 +669,7 @@ const WebGUIPro = (function () {
 
         // 删除 ui
         delete() {
-            _DeleteSonUi(this.ui);
-            this.Callbacks.delete();
-            this.ui.remove();
+            _DeleteUi(this);
         }
 
         // 判断元素是否属于 ui
@@ -710,7 +713,7 @@ const WebGUIPro = (function () {
         }
 
         // 设置状态
-        setState(bool = true){
+        setState(bool = true) {
             if (!Judge.isBoolean(bool)) throw UI_Error.ParameterMismatch(bool);
             this.ui.checked = bool;
         }
@@ -758,6 +761,8 @@ const WebGUIPro = (function () {
     }
 
     class WidgetUI extends UI2 {
+        DIALOG = true;
+
         // 显示
         show() {
             this.ui.removeAttr("open");
@@ -847,6 +852,8 @@ const WebGUIPro = (function () {
     }
 
     class WidgetUI2 extends UI2 {
+        DIALOG = true;
+
         // 显示
         show() {
             this.ui.eventSlot = (event) => {
@@ -888,6 +895,8 @@ const WebGUIPro = (function () {
     }
 
     class WidgetUI3 extends UI2 {
+        DIALOG = true;
+
         // 显示
         show() {
             this.ui.eventSlot = (event) => {
@@ -929,100 +938,11 @@ const WebGUIPro = (function () {
 
     class Link {
         static ListContainer(ui, listUI) {
-            // 选择项
-            ui.selectItem = function (indexOrItem = 0) {
-                listUI.selectItem(indexOrItem);
-            }
-
-            // 设置反转排序项
-            ui.setReverse = function (bool = true, sortord = WSortord.Column) {
-                listUI.setReverse(bool, sortord);
-            }
-
-            // 设置排序方向
-            ui.setSortDirection = function (sortord = WSortord.Column) {
-                listUI.setSortDirection(sortord);
-            }
-
-            // 排序项
-            ui.sortItem = function () {
-                listUI.sortItem();
-            }
-
-            // 返回项数量
-            ui.itemSize = function () {
-                return listUI.itemSize();
-            }
-
-            // 通过索引获取项
-            ui.getItem = function (index = 0) {
-                return listUI.getItem(index);
-            }
-
-            // 获取所有项
-            ui.getItemAll = function () {
-                return listUI.getItemAll();
-            }
-
-            // 获取选中的项
-            ui.getSelectItem = function () {
-                return listUI.getSelectItem();
-            }
-
-            // 获取禁用的项
-            ui.getDisabledItem = function () {
-                return listUI.getDisabledItem();
-            }
-
-            // 清除选择项
-            ui.clearSelectItem = function () {
-                listUI.clearSelectItem();
-            }
-
-            // 根据索引或者项移除项
-            ui.removeItem = function (indexOrItem = 0, isSort = true) {
-                listUI.removeItem(indexOrItem, isSort);
-            }
-
-            // 移除所有项
-            ui.removeItemAll = function () {
-                listUI.removeItemAll();
-            }
-
-            // 添加项
-            ui.addItem = function (item = "", isSort = true) {
-                listUI.addItem(item, isSort);
-            }
-
-            // 添加多项
-            ui.addItems = function (items = [], isSort = true) {
-                listUI.addItems(items, isSort);
-            }
-
-            // 在项之后插入项
-            ui.insertItem = function (item = 0, target = 0) {
-                listUI.insertItem(item, target);
-            }
-
-            // 在项之前插入项
-            ui.insertBeforeItem = function (item = 0, target = 0) {
-                listUI.insertBeforeItem(item, target);
-            }
-
-            // 交换项
-            ui.swapItem = function (item = 0, target = 0) {
-                listUI.swapItem(item, target);
-            }
-
-            // 设置项
-            ui.setItemContent = function (indexOrItem = 0, content = "") {
-                listUI.setItemContent(indexOrItem, content);
-            }
-
-            // 设置禁用项
-            ui.setDisabledItem = function (indexOrItem = 0, bool = true) {
-                listUI.setDisabledItem(indexOrItem, content);
-            }
+            const arr = Object.getOwnPropertyNames(ListContainer.prototype);
+            arr.splice("constructor", 1);
+            forEnd(arr, name => {
+                ui[name] = ListContainer.prototype[name].bind(listUI);
+            });
         }
     }
 
@@ -1156,9 +1076,49 @@ const WebGUIPro = (function () {
             this.Callbacks.removeItem(item);
         }
 
+        // 根据索引或者项移除多项
+        removeItems(items = 0, isSort = true) {
+            forEnd(items, item => this.removeItem(item, false));
+            isSort && this.sortItem();
+        }
+
         // 移除所有项
         removeItemAll() {
             forEnd(this.getItemAll(), item => { this.removeItem(item, false) });
+        }
+
+        // 使项出现在视口
+        itemIntoView(indexOrItem = 0, obj = { behavior: 'smooth' }) {
+            const item = WItem.ReturnUiInItem(indexOrItem, this);
+            item.scrollIntoView(obj);
+        }
+
+        // 移除预选
+        removePreselection(indexOrItem = this.gePreselection()) {
+            const item = WItem.ReturnUiInItem(indexOrItem, this);
+            if (!item) return false;
+            item.removeClass("preselection");
+            return true;
+        }
+
+        // 获取预选
+        gePreselection() {
+            return this.ui.$(".preselection").first;
+        }
+
+        // 预选
+        preselection(indexOrItem = 0, isGoto = true) {
+            const item = WItem.ReturnUiInItem(indexOrItem, this);
+            this.removePreselection();
+            item.addClass("preselection");
+            if (isGoto) this.itemIntoView(indexOrItem);
+        }
+
+        // 确定预选
+        definitePreselection(isDefault = true) {
+            const item = this.gePreselection();
+            this.removePreselection(item);
+            isDefault ? this.selectItem(item) : (item && this.selectItem(item));
         }
 
         // 添加项
@@ -1338,7 +1298,7 @@ const WebGUIPro = (function () {
     }
 
     class Button extends UI {
-        EventAgent = (event) => {
+        #EventAgent = (event) => {
             const TargetElement = event.target;
             this.Callbacks.click(TargetElement, event);
         }
@@ -1346,9 +1306,9 @@ const WebGUIPro = (function () {
         // 设置事件代理
         setEventAgent(bool = true) {
             if (bool)
-                this.ui.addEvent("click", this.EventAgent);
+                this.ui.addEvent("click", this.#EventAgent);
             else
-                this.ui.removeEvent("click", this.EventAgent);
+                this.ui.removeEvent("click", this.#EventAgent);
         }
 
         // 设置 ui 禁用
@@ -2294,6 +2254,11 @@ const WebGUIPro = (function () {
                 }
                 if (map.has("this")) this.setThis($(map.get("this")));
                 if (map.has("that")) this.setThat($(map.get("that")));
+                if (map.has("auto")) {
+                    const parent = this.ui.parentNode;
+                    this.setThis(parent.$(".w-this").first);
+                    this.setThat(parent.$(".w-that").first);
+                }
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
@@ -2879,10 +2844,11 @@ const WebGUIPro = (function () {
     }
 
     class WTreeList extends UI {
+        #AccurateFold = false;
         #SeriesTrigger = false;
         #RootData = [];
 
-        #createNodeItem(text = "") {
+        #createNodeItem(text = "", idKey = null) {
             const indent = createElement({ classList: ["indent"] });
 
             const item = createElement({
@@ -2899,24 +2865,22 @@ const WebGUIPro = (function () {
                 state: false,
                 child: []
             }
+            idKey && (node["id-key"] = idKey);
             return node;
         }
 
-
         #findElementById(id, callback = () => { }) {
             const fn = (data) => {
-                forEnd(data, (item, i) => {
+                return forEnd(data, (item, i) => {
                     if (item.dataId === id) {
                         callback(item, i, data);
+                        return true;
                     }
                     if (item.child && item.child.length > 0) {
                         let found = fn(item.child);
-                        if (found) {
-                            return found;
-                        }
+                        if (found) return found;
                     }
                 });
-                return null;
             }
             fn(this.#RootData);
         }
@@ -2924,6 +2888,12 @@ const WebGUIPro = (function () {
         // 设置连续触发
         setSeriesTrigger(bool = false) {
             this.#SeriesTrigger = TypeCast.toBoolean(bool);
+        }
+
+        // 设置精准折叠
+        setAccurateFold(bool = true) {
+            this.#AccurateFold = TypeCast.toBoolean(bool);
+            this.#AccurateFold ? this.ui.attr("accurate-fold", "") : this.ui.removeAttr("accurate-fold");
         }
 
         // 设置项拖拽
@@ -2958,9 +2928,35 @@ const WebGUIPro = (function () {
             return this.ui.$(">.select").first;
         }
 
+        // 获取选中的项数据ID
+        getSelectItemDataID() {
+            const item = this.getSelectItem();
+            if (item) return parseInt(item.attr("data-id"));
+            return null;
+        }
+
         // 获取禁用的项
         getDisabledItem() {
             return this.ui.$(">[disabled]");
+        }
+
+        // 获取数据
+        getData() {
+            const data = [];
+            const fn = (arr = [], node = []) => {
+                forEnd(arr, selector => {
+                    const obj = {};
+                    obj["text"] = selector["element"].$(".text").first.textContent;
+                    if (selector["element"].hasAttr("id-key")) obj["id-key"] = selector["element"].attr("id-key");
+                    if (selector["child"].length >= 1) {
+                        obj["child"] = [];
+                        fn(selector["child"], obj["child"]);
+                    }
+                    node.push(obj);
+                });
+            };
+            fn(this.#RootData, data);
+            return data;
         }
 
         // 排序项
@@ -2977,18 +2973,34 @@ const WebGUIPro = (function () {
         removeItem(indexOrItem = 0) {
             const item = WItem.ReturnUiInItem(indexOrItem, this);
 
-            this.#findElementById(parseInt(item.attr("data-id")), (item, i, data) => {
+            this.#findElementById(parseInt(item.attr("data-id")), (e, i, data) => {
+                item.remove();
                 data.splice(i, 1);
             });
 
             this.Callbacks.removeItem(item);
-            this.render();
+            this.fastRender();
         }
 
         // 添加项
-        addItem(item = "") {
+        addItem(item = "", idKey = null) {
             if (Judge.isString(item) || Judge.isNumber(item)) {
-                this.#RootData.push(this.#createNodeItem(item));
+                this.#RootData.push(this.#createNodeItem(item, idKey));
+            } else {
+                throw UI_Error.ParameterMismatch(item);
+            }
+
+            this.Callbacks.addItem(item);
+            this.render();
+        }
+
+        // 添加子项
+        addChildItem(item = "", id = 1, idKey = null) {
+            if (Judge.isString(item) || Judge.isNumber(item)) {
+                this.#findElementById(id, parent => {
+                    parent["child"].push(this.#createNodeItem(item, idKey));
+                    parent["state"] = true;
+                });
             } else {
                 throw UI_Error.ParameterMismatch(item);
             }
@@ -3057,7 +3069,7 @@ const WebGUIPro = (function () {
         setItemContent(indexOrItem = 0, content = "") {
             if (!Judge.isString(content)) throw UI_Error.ParameterMismatch(content);
             const item = WItem.ReturnItem(indexOrItem, this);
-            item.textContent = content;
+            item.$(".text").first.textContent = content;
         }
 
         // 设置禁用项
@@ -3073,13 +3085,9 @@ const WebGUIPro = (function () {
         }
 
         // 加载数据
-        loadData(json = {} || "", isRender = false) {
-            if (!(Judge.isString(json) || Judge.isObject(json))) throw UI_Error.ParameterMismatch(json);
-            if (Judge.isString(json)) json = JSON.parse(json);
-            const data = json["WTreeData"];
-            if (!data) throw UI_Error.VariableDoesNotExist(`${json} -> ["WTreeData"]`);
-            if (!Judge.isArray(data)) throw UI_Error.ParameterMismatch(`${json} -> ["WTreeData"] Not Array`);
-
+        loadData(treeData = [], isRender = false) {
+            if (!Judge.isArray(treeData)) throw UI_Error.ParameterMismatch(`${treeData} Not Array`);
+            this.#RootData = [];
             const fn = (arr, root = this.#RootData) => {
                 forEnd(arr, obj => {
                     const node = this.#createNodeItem(obj.text);
@@ -3092,15 +3100,35 @@ const WebGUIPro = (function () {
                     }
                 });
             }
-            fn(data);
+            fn(treeData);
+            this.ui.innerClear();
             isRender && this.render();
         }
 
         // 快速渲染
         fastRender() {
+            let index = 0;
+            const fn_init = (data, indentLevel = 0, parent = 0) => {
+                forEnd(data, obj => {
+                    index++;
+                    obj.element.attr("id-key", obj["id-key"] || "");
+                    obj.element.attr("data-id", index);
+                    obj.element.attr("parent-id", parent);
+                    obj.element.$(".indent").first.css("width", `${indentLevel}px`);
+                    obj["dataId"] = index;
+
+                    if (obj.child) {
+                        obj.child.length > 0 ? obj.element.addClass("parent") : obj.element.removeClass("parent");
+                        fn_init(obj.child, indentLevel + 16, index);
+                    }
+                });
+            }
+            fn_init(this.#RootData);
+
             const fn = (data, state = null) => {
                 forEnd(data, obj => {
                     if (!Judge.isNull(state)) {
+                        (obj.element.hasClass("parent")) && (obj.state ? obj.element.addClass("open") : obj.element.removeClass("open"));
                         if (state) {
                             obj.element.addClass("show");
                             fn(obj.child, obj.state);
@@ -3108,8 +3136,10 @@ const WebGUIPro = (function () {
                             obj.element.removeClass("show");
                             fn(obj.child, false);
                         }
-                    } else
+                    } else {
+                        obj.state ? obj.element.addClass("open") : obj.element.removeClass("open");
                         fn(obj.child, obj.state);
+                    }
                 });
             }
             fn(this.#RootData);
@@ -3119,29 +3149,15 @@ const WebGUIPro = (function () {
         render() {
             this.fastRender();
 
-            let index = 0;
             const Fragment = [];
-
-            const fn = (data, indentLevel = 0, parent = 0) => {
+            const fn = (data) => {
                 forEnd(data, obj => {
-                    index++;
-                    obj.element.attr("id-key", obj["id-key"] || "");
-                    obj.element.attr("data-id", index);
-                    obj.element.attr("parent-id", parent);
-                    obj.element.$(".indent").first.css("width", `${indentLevel}px`);
-                    obj["dataId"] = index;
-
                     Fragment.push(obj.element);
-
-                    if (obj.child) {
-                        obj.child.length > 0 && obj.element.addClass("parent");
-                        fn(obj.child, indentLevel + 16, index);
-                    }
+                    if (obj.child) fn(obj.child);
                 });
             }
             fn(this.#RootData);
 
-            this.ui.innerRemove();
             this.ui.appendFragment(Fragment);
             this.sortItem();
         }
@@ -3151,15 +3167,16 @@ const WebGUIPro = (function () {
             this.initUIConfig();
 
             this.ui.addEvent("click", event => {
-                const TargetElement = event.target;
+                let TargetElement = event.target;
+                let ChangeCondition = true;
+                if (this.#AccurateFold) {
+                    if (TargetElement.hasClass("twistie")) TargetElement = TargetElement.parentNode;
+                    else ChangeCondition = false;
+                }
                 if (!this.ui.contains(TargetElement) || TargetElement === this.ui || !this.Callbacks.selectItem(TargetElement, parseInt(TargetElement.attr("data-id")))) return;
 
-                if (TargetElement.hasClass("parent")) {
-                    this.#findElementById(parseInt(TargetElement.attr("data-id")), item => {
-                        item.state = !item.state;
-                        const twistie = item.element.$(".twistie").first;
-                        if (item.state) twistie.textContent = "\ue313"; else twistie.textContent = "\ue315";
-                    });
+                if (TargetElement.hasClass("parent") && ChangeCondition) {
+                    this.#findElementById(parseInt(TargetElement.attr("data-id")), item => { item.state = !item.state; });
                     this.fastRender();
                 }
 
@@ -3170,7 +3187,7 @@ const WebGUIPro = (function () {
 
                 WItem.RemoveSelectTagItem(this.ui);
                 WItem.SelectItem(TargetElement);
-                this.Callbacks.selectItemChange(TargetElement, parseInt(TargetElement.attr("data-id")));
+                this.Callbacks.selectItemChange(TargetElement, parseInt(TargetElement.attr("data-id")), TargetElement.$(".text").first.textContent);
             });
             this.ui.addEvent("contextmenu", (event) => {
                 const TargetElement = event.target;
@@ -3191,6 +3208,7 @@ const WebGUIPro = (function () {
                 contextMenu: () => { },
                 swapItem: () => true
             }, (map) => {
+                if (map.has("accurateFold")) this.setAccurateFold();
             });
             if (IsUIInit(this, Element)) return false;
             if (Judge.isHTMLElement(Element)) {
@@ -3850,6 +3868,7 @@ const WebGUIPro = (function () {
             draggable = true,
             draggableElement = this.ui
         } = {}) {
+            uniquenessElement($(`[event-id="${eventID}"]`));
             this.ui.attr("event-id", eventID);
 
             this.setContent(content);
@@ -3935,7 +3954,7 @@ const WebGUIPro = (function () {
             time = 2000
         } = {}) {
             this.ui.attr("event-id", eventID);
-            this.ui.attr("level", level);
+            this.#View.message.attr("level", level);
 
             this.#View.content.append(this.#View.title, this.#View.text);
             this.#View.message.append(this.#View.icon, this.#View.content);
@@ -4329,6 +4348,10 @@ const WebGUIPro = (function () {
         ["select-list", WSelectList]
     ];
 
+    function getControlClassList() {
+        return ControlDataList.map(arr => `w-${arr[0]}`);
+    }
+
     function setTheme(Theme) {
         const property = elementStyle.getProperty(Theme);
         const illegalProperty = TypeCast.findExtraItemsInFirstArray(property, TypeCast.objectValueToArray(ThemeProperty));
@@ -4375,6 +4398,20 @@ const WebGUIPro = (function () {
             ]);
         }
         anewRender();
+
+        {
+            const fn = event => {
+                const TargetElement = event.target;
+                if ($("dialog") && event.key === "Escape") {
+                    const result = getAppointParent(TargetElement, parent => parent && (parent.hasAttr && parent.hasAttr("event-id")));
+                    if (result && (result.Class && result.Class.DIALOG)) {
+                        result.Class.delete();
+                    }
+                }
+            };
+            document.removeEvent("keydown", fn);
+            document.addEvent("keydown", fn);
+        }
     }
 
     function anewRender(element = MainWindow) {
@@ -4397,6 +4434,8 @@ const WebGUIPro = (function () {
         render,
         anewRender,
         WValueEntry,
+
+        getControlClassList,
 
         addTheme,
         setTheme,

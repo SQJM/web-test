@@ -88,6 +88,10 @@
         background-color: #d6d6d6;
     }
 
+    &>*[w-item].preselection {
+        outline: solid 1.5px #2d2d2d;
+    }
+
     &>*[w-item].drag-select {
         background-color: #00000020;
     }
@@ -243,22 +247,22 @@
             margin: 6px;
             box-shadow: 0 0 5px #3333332a;
         }
+
+        &>.message[level="warning"] {
+            border-color: #ffd500;
+        }
+
+        &>.message[level="ok"] {
+            border-color: #00ff44;
+        }
+
+        &>.message[level="error"] {
+            border-color: #ff0000;
+        }
     }
 
     &::backdrop {
         background-color: #00000000;
-    }
-
-    &[level="warning"] .message {
-        border-color: #ffd500;
-    }
-
-    &[level="ok"] .message {
-        border-color: #00ff44;
-    }
-
-    &[level="error"] .message {
-        border-color: #ff0000;
     }
 }
 

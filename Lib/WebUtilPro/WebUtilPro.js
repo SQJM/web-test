@@ -27,7 +27,7 @@ var WPageVisibility = true;
 // 样式 元素
 const _WebUtilPro__STYLE_ELEMENT = document.createElement("style");
 // Zero 元素
-const _WebUtilPro__ZERO_ELEMENT = document.createElement("div");
+const _WebUtilPro__ZERO_ELEMENT = document.createElement("input");
 
 const WebUtilPro = (function () {
   'use strict';
@@ -1095,6 +1095,64 @@ const WebUtilPro = (function () {
     #keypress_Event_Arr = [];
     #keyup_Event_Arr = [];
 
+    #Event_Keydown = (event) => {
+      if (this.isBlocking) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      forEnd(this.#keydown_Event_Arr, (e, i) => {
+        if (e.toggleKey === "") {
+          e.callback(event.key, event);
+        } else if (e.toggleKey === event.key) {
+          e.callback(event.key, event);
+        }
+      });
+    }
+    #Event_Keypress = (event) => {
+      if (this.isBlocking) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      forEnd(this.#keypress_Event_Arr, (e, i) => {
+        if (e.toggleKey === "") {
+          e.callback(event.key, event);
+        } else if (e.toggleKey === event.key) {
+          e.callback(event.key, event);
+        }
+      });
+    }
+    #Event_Keyup = (event) => {
+      if (this.isBlocking) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      forEnd(this.#keyup_Event_Arr, (e, i) => {
+        if (e.toggleKey === "") {
+          e.callback(event.key, event);
+        } else if (e.toggleKey === event.key) {
+          e.callback(event.key, event);
+        }
+      });
+    }
+
+    constructor(isBlocking = false, target = window) {
+      this.isBlocking = isBlocking;
+
+      this.TargetObserve = target;
+
+      // 按下
+      this.TargetObserve.addEvent("keydown", this.#Event_Keydown);
+
+      // 在按下并释放能够产生字符的键时触发
+      this.TargetObserve.addEvent("keypress", this.#Event_Keypress);
+
+      // 释放
+      this.TargetObserve.addEvent("keyup", this.#Event_Keyup);
+    }
+
     add({
       eventName = generateUniqueId(),
       type = WEvent.keypress,
@@ -1171,56 +1229,10 @@ const WebUtilPro = (function () {
       return arr;
     }
 
-    constructor(isBlocking = false, target = window) {
-      this.isBlocking = isBlocking;
-
-      // 按下
-      target.addEvent("keydown", (event) => {
-        if (this.isBlocking) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        forEnd(this.#keydown_Event_Arr, (e, i) => {
-          if (e.toggleKey === "") {
-            e.callback(event.key, event);
-          } else if (e.toggleKey === event.key) {
-            e.callback(event.key, event);
-          }
-        });
-      });
-
-      // 在按下并释放能够产生字符的键时触发
-      target.addEvent("keypress", (event) => {
-        if (this.isBlocking) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        forEnd(this.#keypress_Event_Arr, (e, i) => {
-          if (e.toggleKey === "") {
-            e.callback(event.key, event);
-          } else if (e.toggleKey === event.key) {
-            e.callback(event.key, event);
-          }
-        });
-      });
-
-      // 释放
-      target.addEvent("keyup", (event) => {
-        if (this.isBlocking) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-
-        forEnd(this.#keyup_Event_Arr, (e, i) => {
-          if (e.toggleKey === "") {
-            e.callback(event.key, event);
-          } else if (e.toggleKey === event.key) {
-            e.callback(event.key, event);
-          }
-        });
-      });
+    delete() {
+      this.TargetObserve.removeEvent("keydown", this.#Event_Keydown);
+      this.TargetObserve.removeEvent("keypress", this.#Event_Keypress);
+      this.TargetObserve.removeEvent("keyup", this.#Event_Keyup);
     }
   }
 
@@ -1293,7 +1305,7 @@ const WebUtilPro = (function () {
     if (child)
       if (Judge.isArray(child) && child.length > 1) {
         forEnd(child, (e) => {
-          element.appendChild(e);
+          e && element.appendChild(e);
         });
       } else if (Judge.isHTMLElement(child)) {
         element.appendChild(child);
@@ -1891,7 +1903,8 @@ const WebUtilPro = (function () {
      * @param {string} className - 要移除样式的类名
      */
     function remove(className) {
-      _WebUtilPro__STYLE_ELEMENT.$(`.${className}`).first.remove();
+      const element = _WebUtilPro__STYLE_ELEMENT.$(`.${className}`).first;
+      if (element) element.remove();
     }
 
     return {
@@ -2097,6 +2110,21 @@ const WebUtilPro = (function () {
     static calculatePercentage(currentValue, maxValue, fixed = 0) {
       let percentage = (currentValue / maxValue) * 100; // 计算百分比
       return percentage.toFixed(fixed); // 保留指定位数的小数并返回
+    }
+
+    /**
+     * 获取文件的扩展名
+     * @param {string} fileName - 文件的完整名称
+     * @returns {string} - 文件的扩展名,如果没有扩展名则返回空字符串
+     */
+    static getFileExtension(fileName) {
+      const parts = fileName.split('.');
+
+      if (parts.length <= 1) {
+        return '';
+      }
+
+      return parts[parts.length - 1];
     }
   }
 

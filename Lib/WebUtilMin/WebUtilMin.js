@@ -21,12 +21,7 @@ var WClickElementCount = 1;
 // 页面可见性
 var WPageVisibility = true;
 
-// 样式 元素
-const _WebUtilPro__STYLE_ELEMENT = document.createElement("style");
-// Zero 元素
-const _WebUtilPro__ZERO_ELEMENT = document.createElement("div");
-
-const WebUtilPro = (function () {
+const WebUtilMin = (function () {
   'use strict';
 
   // 代码错误
@@ -795,20 +790,9 @@ const WebUtilPro = (function () {
     forOf,
     TypeCast,
     Algorithm
-  } = WebUtilPro;
+  } = WebUtilMin;
 
   {
-    { // 样式元素初始化
-      _WebUtilPro__STYLE_ELEMENT.id = "_WebUtilPro__STYLE_ELEMENT";
-      _WebUtilPro__STYLE_ELEMENT.innerText =
-        `#_WebUtilPro__ZERO_ELEMENT {opacity: 0;width: 1px;height: 1px;position: fixed;top: 0;left: 0;pointer-events: none;}`;
-      Head.appendChild(_WebUtilPro__STYLE_ELEMENT);
-    }
-    { // Zero 元素初始化
-      _WebUtilPro__ZERO_ELEMENT.id = "_WebUtilPro__ZERO_ELEMENT";
-      MainWindow.appendChild(_WebUtilPro__ZERO_ELEMENT);
-    }
-
     // 元素扩展
     {
       /**

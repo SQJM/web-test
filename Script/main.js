@@ -1,6 +1,7 @@
 const {
     WValueEntry,
     render,
+    ThemeProperty,
 } = WebGUIPro;
 
 const {
@@ -129,25 +130,21 @@ function test3() {
         direction: WDirection.Left
     });
     d.show();
-
-    const j =
-    {
-        "type": "TBT",
-        "name": "Easy",
-        "version": "1.0.0",
-        "description": "This Blog Theme. 2024/10/07",
-        "author": "SQJM",
-        "state": false,
-        "data": {
-            "div": {
-                "color": "red"
-            }
-        },
-        "depend": {
-            "WebUtilPro": "2.5.0"
-        }
-    }
 }
+
+const j1 =
+{
+    "type": "TBT",
+    "name": "Block",
+    "version": "1.0.0",
+    "description": "方块主题",
+    "author": "SQJM",
+    "code": ()=>{
+        const s = 0;
+    },
+    "depend": {}
+}
+
 
 window.onload = () => {
     render("./Lib/WebGUIPro");

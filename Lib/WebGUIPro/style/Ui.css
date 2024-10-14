@@ -759,9 +759,10 @@
         }
 
         &>.twistie {
+            flex: 0 0 auto;
             font-family: "MaterialIcons", sans-serif;
             font-size: 20px;
-            width: 10px;
+            width: 20px;
             height: 20px;
             opacity: 0;
             pointer-events: none;
@@ -769,11 +770,17 @@
 
         &>.text {
             pointer-events: none;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
 
         &.parent>.twistie {
-            width: 20px;
             opacity: 1;
+        }
+
+        &.open.parent>.twistie {
+            transform: rotate(90deg);
         }
     }
 
@@ -781,6 +788,10 @@
     &>*[w-item].show {
         height: 30px;
         opacity: 1;
+        pointer-events: all;
+    }
+
+    &[accurate-fold]>*[w-item]>.twistie {
         pointer-events: all;
     }
 }
@@ -902,12 +913,29 @@ w-test {
     cursor: pointer;
     animation: forwards reverse;
     opacity: 0;
+
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    pointer-events: none;
 
+    pointer-events: none;
+    align-items: center;
     transform: translate(0, 0, 0);
+
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis !important;
+
+    .f[f="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"] {
+        color: #0000001d;
+    }
+
+    text-align: center;
+
+    display: flex;
+    align-items: center;
+    justify-items: center;
 }
 
 
