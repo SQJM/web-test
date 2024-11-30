@@ -139,12 +139,12 @@ const j1 =
     "version": "1.0.0",
     "description": "方块主题",
     "author": "SQJM",
-    "code": ()=>{
-        const s = 0;
-    },
     "depend": {}
 }
 
+function dasdfgds(params) {
+
+}
 
 window.onload = () => {
     render("./Lib/WebGUIPro");

@@ -4,9 +4,7 @@
  * @version 2.5.0
  * @author Wang Jia Ming
  * @createDate 2024-10-1
- * @license AGPL-3.0
- * 
- * https://opensource.org/licenses/AGPL-3.0
+ * @license AGPL-3.0-1
  */
 const _WebUtilMin_VERSION = "2.5.0";
 var Html = document.getElementsByTagName("html")[0];
@@ -330,6 +328,24 @@ const WebUtilMin = (function () {
     }
 
     /**
+     * 检查对象中是否包含指定的键
+     * @param {Object} obj - 要检查的对象
+     * @param {string} key - 要查找的键名
+     * @returns {boolean} - 如果键存在于对象中,则返回true,否则返回false
+     */
+    static isKeyInObject(obj, key) {
+      if (!this.isObject(obj)) return false;
+      let result = false;
+      forIn(obj, (value, _key) => {
+        if (_key === key) {
+          result = true;
+          return result;
+        }
+      });
+      return result;
+    }
+
+    /**
      * 判断给定的参数是否为空对象
      * @param {any} ...args - 要检查的参数
      * @returns {boolean} 如果参数是空对象,则返回 true;否则返回 false
@@ -411,6 +427,31 @@ const WebUtilMin = (function () {
     }
 
     /**
+      * 表单验证函数
+      * @param {string} data 待验证数据
+      * @param {string} mode 验证模式,可选值为 "password"`"idCard"`"phone" 和 "email"
+      * @returns {boolean} 验证结果,true 表示验证通过,false 表示验证失败
+      */
+    static formValidation(data, mode) {
+      let is;
+      if (mode !== "") {
+        if (mode === "password") {
+          is = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        } else if (mode === "idCard") {
+          is =
+            /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[012])(0[1-9]|[12]\d|3[01])\d{3}[\dX]$/;
+        } else if (mode === "phone") {
+          is = /^[1][3-9]\d{9}$/;
+        } else if (mode === "email") {
+          is = /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i;
+        }
+        return is.test(data);
+      } else {
+        return false;
+      }
+    }
+
+    /**
      * 判断给定参数是否满足指定条件
      * @param {Function} fn - 条件函数
      * @param {...any} args - 要检查的参数
@@ -430,6 +471,36 @@ const WebUtilMin = (function () {
    * 用于类型转换或获取的工具类
    */
   class TypeCast {
+
+    /**
+     * 将字符串自动转换为相应的数据类型
+     * @param {string} str - 要转换的字符串
+     * @returns {any} - 转换后的数据类型
+     */
+    static strAutoType(str) {
+      str = str.trim();
+      if (str === "true" || str === "false") return TypeCast.strToBool(str);
+      if (str === "undefined" || str === "void 0") return undefined;
+      if (str === "null") return null;
+      const number = Number(str);
+      if (!isNaN(number)) return number;
+      try {
+        const parsed = JSON.parse(str);
+        if (typeof parsed === 'object' && parsed !== null) return parsed;
+      } catch (e) { }
+    }
+
+    /**
+     * 字符串转 innerHTML
+     * @param {String} str - 要转换的字符串
+     * @returns {innerHTML} - 解析后的 innerHTML
+     */
+    static strToinnerHTML(str) {
+      const div = document.createElement("div");
+      div.innerHTML = str;
+      return div.innerHTML;
+    }
+
     /**
      * 将字符串转换为布尔值,
      * @param {string} str - 要转换的字符串,只能是 "true"`"false"`"1" 或 "0"
@@ -733,6 +804,41 @@ const WebUtilMin = (function () {
     }
 
     /**
+     * 生成分页列表,返回一个连续页码的数组
+     * 
+     * @param {number} currentPage - 当前的页码
+     * @param {number} totalPages - 总页数
+     * @param {number} [pageSize=5] - 要返回的连续页码的数量，默认为5
+     * @returns {number[]} - 包含连续页码的数组
+     */
+    static getPaginationList(currentPage, totalPages, pageSize = 5) {
+      // 确保当前页码是一个正整数，并且不大于总页数
+      currentPage = Math.max(1, Math.min(Math.floor(currentPage), totalPages));
+
+      // 计算序列的起始点
+      let start = Math.max(1, currentPage - Math.floor((pageSize - 1) / 2));
+      let end = start + pageSize - 1;
+
+      // 如果结束点超过了总页数，调整结束点和起始点
+      if (end > totalPages) {
+        start = Math.max(1, totalPages - pageSize + 1);
+        end = totalPages;
+      }
+
+      // 如果起始点小于1，调整起始点和结束点
+      while (start < 1) {
+        start++;
+        end++;
+      }
+
+      let paginationList = [];
+      for (let i = start; i <= end; i++) {
+        paginationList.push(i);
+      }
+      return paginationList;
+    }
+
+    /**
      * 获取指定范围内的所有整数,允许指定步长
      * @param {number} start - 范围的起始值
      * @param {number} end - 范围的结束值
@@ -764,6 +870,35 @@ const WebUtilMin = (function () {
     static calculatePercentage(currentValue, maxValue, fixed = 0) {
       let percentage = (currentValue / maxValue) * 100; // 计算百分比
       return percentage.toFixed(fixed); // 保留指定位数的小数并返回
+    }
+
+    /**
+     * 获取文件的扩展名
+     * @param {string} fileName - 文件的完整名称
+     * @returns {string} - 文件的扩展名,如果没有扩展名则返回空字符串
+     */
+    static getFileExtension(fileName) {
+      const parts = fileName.split('.');
+
+      if (parts.length <= 1) {
+        return '';
+      }
+
+      return parts[parts.length - 1];
+    }
+
+    /**
+     * 判断给定的日期是否在指定的日期范围内.支持年,月,日的任意组合
+     * @param {Object} givenDate - 给定日期对象
+     * @param {Object} startDate - 起始日期对象
+     * @param {Object} endDate - 结束日期对象
+     * @returns {boolean} - 如果给定日期在范围内,则返回 true,否则返回 false
+     */
+    static isDateInRange({ year: givenYear = 1970, month: givenMonth = 1, day: givenDay = 1 }, { year: startYear = 1970, month: startMonth = 1, day: startDay = 1 }, { year: endYear = 1970, month: endMonth = 12, day: endDay = 31 }) {
+      const givenDateObj = new Date(givenYear, givenMonth, givenDay);
+      const startDateObj = new Date(startYear, startMonth, startDay);
+      const endDateObj = new Date(endYear, endMonth, endDay);
+      return givenDateObj >= startDateObj && givenDateObj <= endDateObj;
     }
   }
 

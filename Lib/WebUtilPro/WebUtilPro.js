@@ -4,9 +4,7 @@
  * @version 2.5.0
  * @author Wang Jia Ming
  * @createDate 2023-5-7
- * @license AGPL-3.0
- * 
- * https://opensource.org/licenses/AGPL-3.0
+ * @license AGPL-3.0-1
  */
 const _WebUtilPro_VERSION = "2.5.0";
 var Html = document.getElementsByTagName("html")[0];
@@ -279,6 +277,7 @@ const WebUtilPro = (function () {
       ".": "class",
       "[": "attr",
       ">": "son",
+      "<": "tagName",
       "&": "soleID",
     };
 
@@ -302,8 +301,10 @@ const WebUtilPro = (function () {
         const allElements = Array.from(context.querySelectorAll("*"));
         const element = allElements.find(e => e.soleID === selector.substring(1));
         return element || null;
-      } else {
+      } else if (type === "tagName") {
         return Array.from(context.getElementsByTagName(selector));
+      } else {
+        return Array.from(context.querySelectorAll(selector));
       }
     }
 
@@ -621,6 +622,31 @@ const WebUtilPro = (function () {
     }
 
     /**
+      * 表单验证函数
+      * @param {string} data 待验证数据
+      * @param {string} mode 验证模式,可选值为 "password"`"idCard"`"phone" 和 "email"
+      * @returns {boolean} 验证结果,true 表示验证通过,false 表示验证失败
+      */
+    static formValidation(data, mode) {
+      let is;
+      if (mode !== "") {
+        if (mode === "password") {
+          is = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        } else if (mode === "idCard") {
+          is =
+            /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[012])(0[1-9]|[12]\d|3[01])\d{3}[\dX]$/;
+        } else if (mode === "phone") {
+          is = /^[1][3-9]\d{9}$/;
+        } else if (mode === "email") {
+          is = /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i;
+        }
+        return is.test(data);
+      } else {
+        return false;
+      }
+    }
+
+    /**
      * 判断给定参数是否满足指定条件
      * @param {Function} fn - 条件函数
      * @param {...any} args - 要检查的参数
@@ -640,6 +666,36 @@ const WebUtilPro = (function () {
    * 用于类型转换或获取的工具类
    */
   class TypeCast {
+
+    /**
+     * 将字符串自动转换为相应的数据类型
+     * @param {string} str - 要转换的字符串
+     * @returns {any} - 转换后的数据类型
+     */
+    static strAutoType(str) {
+      str = str.trim();
+      if (str === "true" || str === "false") return TypeCast.strToBool(str);
+      if (str === "undefined" || str === "void 0") return undefined;
+      if (str === "null") return null;
+      const number = Number(str);
+      if (!isNaN(number)) return number;
+      try {
+        const parsed = JSON.parse(str);
+        if (typeof parsed === 'object' && parsed !== null) return parsed;
+      } catch (e) { }
+    }
+
+    /**
+     * 字符串转 innerHTML
+     * @param {String} str - 要转换的字符串
+     * @returns {innerHTML} - 解析后的 innerHTML
+     */
+    static strToinnerHTML(str) {
+      const div = document.createElement("div");
+      div.innerHTML = str;
+      return div.innerHTML;
+    }
+
     /**
      * 将字符串转换为布尔值,
      * @param {string} str - 要转换的字符串,只能是 "true"`"false"`"1" 或 "0"
@@ -1328,31 +1384,6 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 表单验证函数
-   * @param {string} data 待验证数据
-   * @param {string} mode 验证模式,可选值为 "password"`"idCard"`"phone" 和 "email"
-   * @returns {boolean} 验证结果,true 表示验证通过,false 表示验证失败
-   */
-  function formValidation(data, mode) {
-    let is;
-    if (mode !== "") {
-      if (mode === "password") {
-        is = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-      } else if (mode === "idCard") {
-        is =
-          /^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[012])(0[1-9]|[12]\d|3[01])\d{3}[\dX]$/;
-      } else if (mode === "phone") {
-        is = /^[1][3-9]\d{9}$/;
-      } else if (mode === "email") {
-        is = /^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i;
-      }
-      return is.test(data);
-    } else {
-      return false;
-    }
-  }
-
-  /**
    * 更新网站 Favicon 的链接
    * @param {string} newIconUrl 新的 Favicon 的 URL
    */
@@ -1516,6 +1547,48 @@ const WebUtilPro = (function () {
   }
 
   /**
+   * localStorage管理类,用于封装localStorage的键值对操作
+   */
+  class localStorageManage {
+    #getKey(key = "") {
+      return `${this.name}_${key}`;
+    }
+    #var = {}
+
+    constructor(name = "") {
+      this.name = name;
+      forIn(localStorage, (v, k) => {
+        const n = k.slice(0, this.name.length);
+        if (n === this.name) this.#var[k.slice(this.name.length + 1)] = "";
+      });
+    }
+
+    setDefault(key = "", defaultValue = "") {
+      if (!this.has(key)) this.set(key, defaultValue);
+    }
+
+    set(key = "", value = "") {
+      this.#var[key] = "";
+      localStorage.setItem(this.#getKey(key), value);
+    }
+
+    get(key = "", toJsType = false) {
+      if (toJsType) return TypeCast.strAutoType(localStorage.getItem(this.#getKey(key)));
+      return localStorage.getItem(this.#getKey(key));
+    }
+
+    json(key = "") {
+      return JSON.parse(this.get(key));
+    }
+
+    has(key = "") {
+      return TypeCast.toBoolean(this.get(key));
+    }
+
+    remove(key = "") { delete this.#var[key]; localStorage.removeItem(this.#getKey(key)); }
+  }
+
+  /**
    * AudioPlayer 音频播放器对象
    */
   class AudioPlayer {
@@ -1591,17 +1664,6 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * 字符串转 innerHTML
-   * @param {String} str - 要转换的字符串
-   * @returns {innerHTML} - 解析后的 innerHTML
-   */
-  function strToinnerHTML(str) {
-    const div = document.createElement("div");
-    div.innerHTML = str;
-    return div.innerHTML;
-  }
-
-  /**
    * 元素动画
    * @param {HTMLElement} element - 目标元素
    * @param {String} an - 动画
@@ -1664,7 +1726,7 @@ const WebUtilPro = (function () {
    * @returns {any|null} - 满足条件的元素（对于数组）或索引（对于数字）; 如果没有找到匹配项,则返回 `null`
    */
   function forEnd(Arrs, condition, { start = 0, skip = null, isReversal = false, autoReplace = false } = {}) {
-    if (!Judge.isArray(Arrs) && !Judge.isNumber(Arrs)) return null;
+    if (!Judge.isArray(Arrs) && !Judge.isNumber(Arrs) && !Arrs[0]) return null;
     let count = 0;
     if (skip === null) {
       skip = []; // 如果skip未提供,则设为空数组
@@ -1946,67 +2008,31 @@ const WebUtilPro = (function () {
   }
 
   /**
-   * ExternalControl - 用于与外部文档进行交互的控制器
+   * @class VitalEvent
+   * 用于监听一个元素是否被从 MainWindow 中移除
+   * 如果元素被移除,则自动调用结束函数
    */
-  class ExternalControl {
-    /**
-     * @param {string} path - 外部文档路径
-     */
-    constructor(path) {
-      this.doc = null;
-      this.iframe = document.createElement("iframe");
-      this.iframe.classList.add("ExternalControl");
-      this.iframe.style.display = "none";
-      this.iframe.src = path;
+  class VitalEvent {
+    constructor(element = MainWindow, init = () => { }, end = () => { }) {
+      if (!Judge.isFunction(init, end)) throw Code_Error.ParameterMismatch(init, end);
+      if (!Judge.isHTMLElement(element)) throw Code_Error.ParameterMismatch(element);
 
-      // 当 iframe 加载完成时,保存文档引用
-      this.iframe.onload = () => {
-        this.doc = this.iframe.contentDocument;
-      };
+      this._intervalId = null;
+      this.end = end;
 
-      // 将 iframe 添加到文档中
-      document.body.appendChild(this.iframe);
+      init();
+
+      this._intervalId = setInterval(() => {
+        if (!MainWindow.contains(element)) this.dispose();
+      }, 100);
     }
 
-    // 删除
-    delete() {
-      this.iframe.remove();
-    }
-
-    static DataSrcReplaceSrc(element) {
-      const fn = (e) => {
-        if (e.attr("data-src")) {
-          e.attr("src", e.attr("data-src"));
-          e.removeAttr("data-src");
-        }
+    dispose() {
+      if (this._intervalId) {
+        clearInterval(this._intervalId);
+        this._intervalId = null;
       }
-
-      forEnd(element.$("[data-src]"), e => fn(e));
-      fn(element);
-    }
-
-    dataSrcReplaceSrc(element) {
-      ExternalControl.DataSrcReplaceSrc(element);
-    }
-
-    /**
-     * 获取外部文档中的元素
-     * @param {string} str - 元素选择器
-     * @param {number} i - 索引(用于类选择器)
-     * @returns {HTMLElement} - 外部文档中匹配选择器的元素的克隆
-     */
-    get(str = "", i = null) {
-      const at = str.charAt(0);
-      const tag = str.substring(1, str.length);
-      let ele = null;
-      if (at === "#") {
-        ele = this.doc.getElementById(tag);
-      } else if (at === ".") {
-        const elements = this.doc.getElementsByClassName(tag);
-        ele = (i === null) ? elements : elements[i];
-      }
-      const newElement = ele.cloneNode(true);
-      return newElement;
+      this.end();
     }
   }
 
@@ -2079,6 +2105,41 @@ const WebUtilPro = (function () {
     }
 
     /**
+     * 生成分页列表,返回一个连续页码的数组
+     * 
+     * @param {number} currentPage - 当前的页码
+     * @param {number} totalPages - 总页数
+     * @param {number} [pageSize=5] - 要返回的连续页码的数量，默认为5
+     * @returns {number[]} - 包含连续页码的数组
+     */
+    static getPaginationList(currentPage, totalPages, pageSize = 5) {
+      // 确保当前页码是一个正整数，并且不大于总页数
+      currentPage = Math.max(1, Math.min(Math.floor(currentPage), totalPages));
+
+      // 计算序列的起始点
+      let start = Math.max(1, currentPage - Math.floor((pageSize - 1) / 2));
+      let end = start + pageSize - 1;
+
+      // 如果结束点超过了总页数，调整结束点和起始点
+      if (end > totalPages) {
+        start = Math.max(1, totalPages - pageSize + 1);
+        end = totalPages;
+      }
+
+      // 如果起始点小于1，调整起始点和结束点
+      while (start < 1) {
+        start++;
+        end++;
+      }
+
+      let paginationList = [];
+      for (let i = start; i <= end; i++) {
+        paginationList.push(i);
+      }
+      return paginationList;
+    }
+
+    /**
      * 获取指定范围内的所有整数,允许指定步长
      * @param {number} start - 范围的起始值
      * @param {number} end - 范围的结束值
@@ -2125,6 +2186,20 @@ const WebUtilPro = (function () {
       }
 
       return parts[parts.length - 1];
+    }
+
+    /**
+     * 判断给定的日期是否在指定的日期范围内.支持年,月,日的任意组合
+     * @param {Object} givenDate - 给定日期对象
+     * @param {Object} startDate - 起始日期对象
+     * @param {Object} endDate - 结束日期对象
+     * @returns {boolean} - 如果给定日期在范围内,则返回 true,否则返回 false
+     */
+    static isDateInRange({ year: givenYear = 1970, month: givenMonth = 1, day: givenDay = 1 }, { year: startYear = 1970, month: startMonth = 1, day: startDay = 1 }, { year: endYear = 1970, month: endMonth = 12, day: endDay = 31 }) {
+      const givenDateObj = new Date(givenYear, givenMonth, givenDay);
+      const startDateObj = new Date(startYear, startMonth, startDay);
+      const endDateObj = new Date(endYear, endMonth, endDay);
+      return givenDateObj >= startDateObj && givenDateObj <= endDateObj;
     }
   }
 
@@ -2178,15 +2253,7 @@ const WebUtilPro = (function () {
       }
 
       const [path, fn, endDelete] = arr[index];
-      includeJsFile(path, () => {
-        if (fn) fn();
-        if (endDelete) {
-          setTimeout(() => {
-            script.remove();
-          }, 5);
-        }
-        loadNext(index + 1);
-      });
+      includeJsFile(path, () => { if (fn) fn(); loadNext(index + 1); }, endDelete);
     }
 
     if (isAsync) {
@@ -2245,11 +2312,11 @@ const WebUtilPro = (function () {
    */
   function _INIT_PAGE_WebUtilPro_(callback = () => { }, time = 100) {
     try {
-      MainWindow.style.pointerEvents = "all";
       setTimeout(() => {
         _INIT_PAGE_WebUtilPro_FN();
-        MainWindow.style.opacity = "1";
         callback();
+        MainWindow.style.pointerEvents = "all";
+        MainWindow.style.opacity = "1";
       }, time);
     } catch (error) {
       throw error;
@@ -2273,7 +2340,6 @@ const WebUtilPro = (function () {
     forEnd,
     forIn,
     forOf,
-    formValidation,
     uniquenessElement,
     formatDateString,
     generateUniqueId,
@@ -2287,12 +2353,10 @@ const WebUtilPro = (function () {
     includeJsFile,
     includeJsFiles,
     setElementInAllPrototypeRecursive,
-    strToinnerHTML,
     updateFavicon,
     runAsyncOnce,
     RangeCorrection,
 
-    ExternalControl,
     AddDraggable,
     AudioPlayer,
     Judge,
@@ -2300,6 +2364,8 @@ const WebUtilPro = (function () {
     TypeCast,
     LevelMessage,
     Algorithm,
+    VitalEvent,
+    localStorageManage,
 
     Code_Error,
 
@@ -2397,6 +2463,13 @@ const WebUtilPro = (function () {
         } else {
           return false;
         }
+      }
+      /**
+       * 扩展 HTMLElement 原型的 attrs 方法,获取当前元素的所有属性
+       * @return {NamedNodeMap} 返回当前 HTML 元素所有属性值
+       */
+      HTMLElement.prototype.attrs = function () {
+        return this.attributes;
       }
       /**
        * 扩展 HTMLElement 原型的 removeAttr 方法,移除当前元素的属性

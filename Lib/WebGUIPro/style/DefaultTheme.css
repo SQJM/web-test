@@ -1,3 +1,4 @@
+
 .w-theme {
     padding: 2px 4px 2px 4px;
     background-color: #fff;
@@ -118,12 +119,12 @@
 
 .w-button,
 .w-bool-button {
-    border-radius: 5px;
-    padding: 2px;
+    border-radius: 4px;
+    padding: 2px 4px 2px 4px;
     background-color: #f1f1f1;
     cursor: pointer;
-    border: solid 2px;
-    border-color: #2d2d2d;
+    border: solid 1.5px;
+    border-color: #252525;
     transition: all .3s;
     text-wrap: nowrap;
 
@@ -133,7 +134,7 @@
 
     &:hover {
         background-color: #ffffff;
-        box-shadow: 0 0 2px #000000dc;
+        box-shadow: 0 0 2px #abababdc;
     }
 
     &:active {
@@ -209,6 +210,10 @@
     border-radius: 8px;
     border: solid 1.5px #c8c8c8dd;
     box-shadow: 0 0 30px 6px #3333332a;
+
+    &>.content:focus-visible{
+        outline: none;
+    }
 
     &::backdrop {
         background-color: #00000000;
@@ -521,15 +526,17 @@
 }
 
 .w-switch {
+    margin: 2px;
+
     &::before {
-        background-color: #ffffff;
+        background-color: #fff;
         box-shadow: inset 0 0 2px #6b6b6b80;
         border-radius: 90px;
     }
 
     &::after {
         background-color: #ffffff;
-        box-shadow: 1px 1px 2px #3f3f3f80;
+        box-shadow: 1px 1px 2px #3f3f3f4d;
         border-radius: 90px;
     }
 

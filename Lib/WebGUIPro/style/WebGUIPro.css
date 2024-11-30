@@ -1,69 +1,10 @@
-* {
-    /* 盒模型 */
-    margin: 0px;
-    padding: 0px;
-
-    /* 文本样式 */
-    font-weight: normal;
-    font-variation-settings: normal;
-    letter-spacing: 1px;
-    vertical-align: top;
-
-    /* 布局 */
-    position: relative;
-    float: none;
-    clear: both;
-
-    /* 盒阴影和圆角 */
-    box-shadow: none;
-    border-radius: 0;
-
-    /* 动画和过渡效果 */
-    transition: none;
-    animation: none;
-
-    /* 其他样式 */
+#MainWindow * {
     box-sizing: border-box;
     z-index: 1;
     opacity: 1;
-
-    /* 光标样式 */
+    position: relative;
     caret-color: #000000;
-
-    /* 移除点击时的蓝色背景样式 */
     -webkit-tap-highlight-color: transparent;
-
-    /* 背景样式 */
-    background-image: none;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-
-    /* 文本样式 */
-    font-size: large;
-    line-height: normal;
-    text-align: initial;
-    text-decoration: none;
-}
-
-*[rotate90] {
-    transform: rotate(90deg);
-}
-
-*[rotate180] {
-    transform: rotate(180deg);
-}
-
-*[rotate270] {
-    transform: rotate(270deg);
-}
-
-*[rotate360] {
-    transform: rotate(360deg);
-}
-
-*[user-select] {
-    user-select: text;
 }
 
 .w-preselection {
@@ -94,6 +35,8 @@ html {
 }
 
 body {
+    margin: 0px;
+    padding: 0px;
     width: 100dvw;
     height: 100dvh;
     display: block;
